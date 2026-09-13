@@ -136,7 +136,7 @@ export default function App() {
           <span aria-hidden="true"> 📚</span>
         </h1>
         <p>Книги для детей и родителей — бронируйте, читайте, развивайтесь!</p>
-      </header>                <div className="grid warn-pages">
+      </header>                <div className="grid">
         {/* Красная панель: книги */}
         <section className="panel books-panel">
           <h2>📕 Наши книги</h2>
@@ -281,9 +281,6 @@ export default function App() {
 
           {/* Голубая панель: информация */}
           <section className="panel info-panel">
-            <div className="info-warn">
-              ⚠ На GitHub Pages книги и фото book-cover хранятся только в браузере.
-            </div>
             <h2>ℹ️ О библиотеке</h2>
             <p>
               Библиотека Центра речи «Будущее» помогает детям и родителям развивать

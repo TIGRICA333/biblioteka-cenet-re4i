@@ -44,7 +44,7 @@ textarea {
   font-size: 30px;
 }
 
-.header h1 .title-angels {
+.title-angels {
   display: inline-flex;
   align-items: center;
   gap: 2px;
@@ -87,34 +87,6 @@ textarea {
 .panel h2 {
   margin-top: 0;
   font-size: 20px;
-}
-
-/* Предупреждение про GitHub Pages */
-.warn-pages .info-panel {
-  border: 3px solid #b58c00;
-  animation: warnPulse 1.8s ease-in-out 2;
-}
-
-.warn-pages .info-panel .info-warn {
-  background: #fff8e1;
-  border: 1px solid #f0c63d;
-  border-radius: 8px;
-  padding: 10px;
-  margin-bottom: 12px;
-  font-size: 14px;
-  color: #7a5500;
-}
-
-@keyframes warnPulse {
-  0% {
-    box-shadow: 0 0 0 0 rgba(240, 198, 61, 0.5);
-  }
-  70% {
-    box-shadow: 0 0 0 12px rgba(240, 198, 61, 0);
-  }
-  100% {
-    box-shadow: 0 0 0 0 rgba(240, 198, 61, 0);
-  }
 }
 
 /* Красная панель — книги */
