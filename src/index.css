@@ -29,6 +29,18 @@ textarea {
   padding: 24px 16px 60px;
 }
 
+.app-error {
+  margin: 14px auto;
+  padding: 10px 14px;
+  background: #fdecea;
+  border: 1px solid #e6b0aa;
+  border-radius: 8px;
+  color: #7b241c;
+  font-size: 14px;
+  max-width: 600px;
+  text-align: center;
+}
+
 /* Шапка */
 .header {
   background: linear-gradient(135deg, #1f5c3d, #2e7d52);

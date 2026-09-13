@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Book,
   ReaderRequest,
@@ -10,8 +10,10 @@ import {
 } from "./data";
 
 export default function App() {
-  const [books, setBooks] = useState<Book[]>(loadBooks);
-  const [requests, setRequests] = useState<ReaderRequest[]>(loadRequests);
+  const [books, setBooks] = useState<Book[]>([]);
+  const [requests, setRequests] = useState<ReaderRequest[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [errorMsg, setErrorMsg] = useState("");
 
   const [bookSearch, setBookSearch] = useState("");
   const [isAdmin, setIsAdmin] = useState(false);
@@ -26,16 +28,45 @@ export default function App() {
   const [newAuthor, setNewAuthor] = useState("");
   const [newDesc, setNewDesc] = useState("");
   const [newCover, setNewCover] = useState("");
+  const [pendingSave, setPendingSave] = useState(false);
+
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editTitle, setEditTitle] = useState("");
   const [editAuthor, setEditAuthor] = useState("");
   const [editDesc, setEditDesc] = useState("");
   const [editCover, setEditCover] = useState("");
+  const [pendingEdit, setPendingEdit] = useState(false);
 
-  const persistBooks = (next: Book[]) => {
+  useEffect(() => {
+    loadInitialData();
+  }, []);
+
+  async function loadInitialData() {
+    try {
+      setErrorMsg("");
+      const [booksData, requestsData] = await Promise.all([
+        loadBooks(),
+        loadRequests(),
+      ]);
+      setBooks(booksData);
+      setRequests(requestsData);
+    } catch (err) {
+      console.error(err);
+      setErrorMsg("Не удалось загрузить данные из библиотеки. Попробуйте обновить страницу.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function persistBooks(next: Book[]) {
     setBooks(next);
-    saveBooks(next);
-  };
+    await saveBooks(next);
+  }
+
+  async function persistRequests(next: ReaderRequest[]) {
+    setRequests(next);
+    await saveRequests(next);
+  }
 
   const handleAdminLogin = () => {
     if (passwordInput === ADMIN_PASSWORD) {
@@ -54,8 +85,9 @@ export default function App() {
     alert("Книга забронирована! Приходите за ней в часы работы библиотеки.");
   };
 
-  const handleAddBook = () => {
-    if (!newTitle.trim()) return;      const next: Book = {
+  const handleAddBook = async () => {
+    if (!newTitle.trim()) return;
+    const next: Book = {
       id: Date.now(),
       title: newTitle.trim(),
       author: newAuthor.trim() || "Неизвестный автор",
@@ -63,10 +95,16 @@ export default function App() {
       available: true,
       coverUrl: newCover || "",
     };
-    persistBooks([next, ...books]);
+    setPendingSave(true);
+    try {
+      await persistBooks([next, ...books]);
+    } finally {
+      setPendingSave(false);
+    }
     setNewTitle("");
     setNewAuthor("");
     setNewDesc("");
+    setNewCover("");
   };
 
   const startEdit = (b: Book) => {
@@ -74,33 +112,37 @@ export default function App() {
     setEditTitle(b.title);
     setEditAuthor(b.author);
     setEditDesc(b.description);
+    setEditCover(b.coverUrl);
   };
 
-  const saveEdit = () => {
+  const saveEdit = async () => {
     if (editingId === null) return;
-    persistBooks(
-      books.map((b) =>
-        b.id === editingId
-          ? { ...b, title: editTitle, author: editAuthor, description: editDesc, coverUrl: editCover }
-          : b
-      )
+    const updated: Book[] = books.map((b) =>
+      b.id === editingId
+        ? { ...b, title: editTitle, author: editAuthor, description: editDesc, coverUrl: editCover }
+        : b
     );
+    setPendingEdit(true);
+    try {
+      await persistBooks(updated);
+    } finally {
+      setPendingEdit(false);
+    }
     setEditingId(null);
   };
 
-  const handleDeleteBook = (id: number) => {
-    if (confirm("Удалить эту книгу?")) {
-      persistBooks(books.filter((b) => b.id !== id));
-    }
+  const handleDeleteBook = async (id: number) => {
+    if (!confirm("Удалить эту книгу?")) return;
+    const next = books.filter((b) => b.id !== id);
+    await persistBooks(next);
   };
 
-  const toggleAvailable = (id: number) => {
-    persistBooks(
-      books.map((b) => (b.id === id ? { ...b, available: !b.available } : b))
-    );
+  const toggleAvailable = async (id: number) => {
+    const next = books.map((b) => (b.id === id ? { ...b, available: !b.available } : b));
+    await persistBooks(next);
   };
 
-  const handleSendRequest = () => {
+  const handleSendRequest = async () => {
     if (!reqMessage.trim()) return;
     const next: ReaderRequest[] = [
       {
@@ -111,22 +153,41 @@ export default function App() {
       },
       ...requests,
     ];
-    setRequests(next);
-    saveRequests(next);
+    setPendingSave(true);
+    try {
+      await persistRequests(next);
+    } finally {
+      setPendingSave(false);
+    }
     setReqName("");
     setReqMessage("");
     setReqSent(true);
   };
 
-  const handleDeleteRequest = (id: number) => {
+  const handleDeleteRequest = async (id: number) => {
     const next = requests.filter((r) => r.id !== id);
-    setRequests(next);
-    saveRequests(next);
+    await persistRequests(next);
   };
 
   const visibleBooks = books.filter((b) =>
     (b.title + " " + b.author).toLowerCase().includes(bookSearch.toLowerCase())
   );
+
+  if (loading) {
+    return (
+      <div className="app">
+        <header className="header">
+          <h1>📚 Библиотека Центра речи «Будущее»</h1>
+          <p>Загрузка библиотеки…</p>
+        </header>
+        <div className="grid">
+          <section className="panel books-panel">
+            <p className="empty">Загрузка книг из базы…</p>
+          </section>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="app">
@@ -136,7 +197,11 @@ export default function App() {
           <span aria-hidden="true"> 📚</span>
         </h1>
         <p>Книги для детей и родителей — бронируйте, читайте, развивайтесь!</p>
-      </header>                <div className="grid">
+      </header>
+
+      {errorMsg && <div className="app-error">{errorMsg}</div>}
+
+      <div className="grid">
         {/* Красная панель: книги */}
         <section className="panel books-panel">
           <h2>📕 Наши книги</h2>
@@ -149,14 +214,11 @@ export default function App() {
             <p className="empty">Книги не найдены.</p>
           ) : (
             <ul className="book-list">
-              {visibleBooks.map((b) => (                  <li key={b.id} className="book-item">
-                    {b.coverUrl && (
-                      <img
-                        src={b.coverUrl}
-                        alt={b.title}
-                        className="book-cover"
-                      />
-                    )}
+              {visibleBooks.map((b) => (
+                <li key={b.id} className="book-item">
+                  {b.coverUrl && (
+                    <img src={b.coverUrl} alt={b.title} className="book-cover" />
+                  )}
                   {editingId === b.id ? (
                     <div className="admin-form" style={{ borderTop: "none", paddingTop: 0 }}>
                       <input value={editTitle} onChange={(e) => setEditTitle(e.target.value)} placeholder="Название" />
@@ -164,7 +226,9 @@ export default function App() {
                       <textarea value={editDesc} onChange={(e) => setEditDesc(e.target.value)} placeholder="Описание" />
                       <input type="text" value={editCover} onChange={(e) => setEditCover(e.target.value)} placeholder="Ссылка на фото книги" />
                       <div className="actions">
-                        <button className="btn btn-white" onClick={saveEdit}>Сохранить</button>
+                        <button className="btn btn-white" disabled={pendingEdit} onClick={saveEdit}>
+                          {pendingEdit ? "Сохранение…" : "Сохранить"}
+                        </button>
                         <button className="btn btn-dark" onClick={() => setEditingId(null)}>Отмена</button>
                       </div>
                     </div>
@@ -179,10 +243,10 @@ export default function App() {
                       <div className="actions">
                         <button
                           className="btn btn-white"
-                          disabled={!b.available}
+                          disabled={!b.available || pendingSave}
                           onClick={() => handleBook(b.id)}
                         >
-                          Забронировать
+                          {pendingSave ? "…" : "Забронировать"}
                         </button>
                         {isAdmin && (
                           <>
@@ -207,7 +271,9 @@ export default function App() {
               <input placeholder="Автор" value={newAuthor} onChange={(e) => setNewAuthor(e.target.value)} />
               <textarea placeholder="Описание" value={newDesc} onChange={(e) => setNewDesc(e.target.value)} />
               <input type="text" placeholder="Ссылка на фото книги (URL)" value={newCover} onChange={(e) => setNewCover(e.target.value)} />
-              <button className="btn btn-white" onClick={handleAddBook}>Опубликовать</button>
+              <button className="btn btn-white" disabled={pendingSave} onClick={handleAddBook}>
+                {pendingSave ? "Публикация…" : "Опубликовать"}
+              </button>
             </div>
           )}
         </section>
@@ -255,7 +321,9 @@ export default function App() {
                   value={reqMessage}
                   onChange={(e) => setReqMessage(e.target.value)}
                 />
-                <button className="btn btn-pink" onClick={handleSendRequest}>Отправить заявку</button>
+                <button className="btn btn-pink" disabled={pendingSave} onClick={handleSendRequest}>
+                  {pendingSave ? "Отправка…" : "Отправить заявку"}
+                </button>
                 {reqSent && <p style={{ marginTop: 10 }}>Спасибо! Ваша заявка отправлена 🌸</p>}
               </>
             ) : (
