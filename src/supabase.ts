@@ -1,15 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string | undefined;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined;
+const SUPABASE_URL = "https://ilghjwojkpsrsabvhpfq.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_o0CcZuuWAaXd1R3-0rj6ew_x0IDaRLd";
 
-if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error(
-    "Отсутствуют переменные VITE_SUPABASE_URL или VITE_SUPABASE_ANON_KEY. " +
-      "Добавьте их в .env.local: " +
-      "VITE_SUPABASE_URL=https://YOUR_PROJECT.supabase.co " +
-      "VITE_SUPABASE_ANON_KEY=your_anon_key"
-  );
-}
-
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);

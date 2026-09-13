@@ -20,7 +20,10 @@ const BOOKS_TABLE = "books";
 const REQUESTS_TABLE = "reader_requests";
 
 export async function loadBooks(): Promise<Book[]> {
-  const { data, error } = await supabase.from(BOOKS_TABLE).select("*").order("id", { ascending: false });
+  const { data, error } = await supabase
+    .from(BOOKS_TABLE)
+    .select("*")
+    .order("id", { ascending: false });
   if (error) {
     console.error("Ошибка загрузки книг из Supabase:", error);
     return [];
@@ -29,15 +32,11 @@ export async function loadBooks(): Promise<Book[]> {
 }
 
 export async function saveBooks(books: Book[]): Promise<void> {
-  // Оставляем только книги, которые есть в текущем списке.
-  // Если их в БД меньше — добавляем, если больше — удаляем лишние.
-  const remoteIds = new Set(books.map((b) => b.id));
-
+  const ids = books.map((b) => b.id);
   const { error: deleteError } = await supabase
     .from(BOOKS_TABLE)
     .delete()
-    .notIn("id", books.map((b) => b.id));
-
+    .notIn("id", ids);
   if (deleteError) {
     console.error("Ошибка синхронизации книг (удаление):", deleteError);
   }
@@ -57,7 +56,6 @@ export async function loadRequests(): Promise<ReaderRequest[]> {
     .from(REQUESTS_TABLE)
     .select("*")
     .order("created_at", { ascending: false });
-
   if (error) {
     console.error("Ошибка загрузки заявок из Supabase:", error);
     return [];
@@ -66,13 +64,11 @@ export async function loadRequests(): Promise<ReaderRequest[]> {
 }
 
 export async function saveRequests(requests: ReaderRequest[]): Promise<void> {
-  const remoteIds = new Set(requests.map((r) => r.id));
-
+  const ids = requests.map((r) => r.id);
   const { error: deleteError } = await supabase
     .from(REQUESTS_TABLE)
     .delete()
-    .notIn("id", requests.map((r) => r.id));
-
+    .notIn("id", ids);
   if (deleteError) {
     console.error("Ошибка синхронизации заявок (удаление):", deleteError);
   }

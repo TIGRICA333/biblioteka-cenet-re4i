@@ -10,8 +10,4 @@ export default defineConfig({
   build: {
     outDir: "dist",
   },
-  define: {
-    "process.env": JSON.stringify({}), // не трогаем, Supabase читает import.meta.env
-  },
-  envPrefix: ["VITE_"],
 });
