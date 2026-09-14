@@ -1,4 +1,8 @@
-node_modules/
+node_modules
+dist
 bun.lock
 tsconfig.tsbuildinfo
-dist/
+.env
+.env.local
+*.log
+.DS_Store
