@@ -288,6 +288,24 @@ textarea {
   font-style: italic;
 }
 
+.file-label {
+  display: block;
+  width: 100%;
+  text-align: center;
+  background: rgba(255, 255, 255, 0.2);
+  border: 2px dashed rgba(255, 255, 255, 0.6);
+  border-radius: 8px;
+  padding: 10px;
+  margin-bottom: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.file-label:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
 .book-cover {
   max-width: 100%;
   height: auto;
