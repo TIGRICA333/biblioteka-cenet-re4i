@@ -418,7 +418,7 @@ export default function App() {
           </p>
           <strong>🕐 Режим работы:</strong>
           <ul>
-            <li>Понедельник: 9:00 – 12:00</li>
+            <li>Понедельник: 9:00 – 16:00</li>
           </ul>
         </section>
       </div>
