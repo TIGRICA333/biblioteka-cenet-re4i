@@ -107,6 +107,45 @@ export default function App() {
     setNewCover("");
   };
 
+  const compressImage = (file: File): Promise<string> =>
+    new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const img = new Image();
+        img.onload = () => {
+          const maxSide = 600;
+          const scale = Math.min(1, maxSide / Math.max(img.width, img.height));
+          const canvas = document.createElement("canvas");
+          canvas.width = Math.round(img.width * scale);
+          canvas.height = Math.round(img.height * scale);
+          canvas.getContext("2d")!.drawImage(img, 0, 0, canvas.width, canvas.height);
+          resolve(canvas.toDataURL("image/jpeg", 0.7));
+        };
+        img.onerror = reject;
+        img.src = String(reader.result);
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+
+  const handleNewCoverFile = async (file: File | undefined) => {
+    if (!file) return;
+    try {
+      setNewCover(await compressImage(file));
+    } catch {
+      alert("Не удалось загрузить фото. Попробуйте другое.");
+    }
+  };
+
+  const handleEditCoverFile = async (file: File | undefined) => {
+    if (!file) return;
+    try {
+      setEditCover(await compressImage(file));
+    } catch {
+      alert("Не удалось загрузить фото. Попробуйте другое.");
+    }
+  };
+
   const startEdit = (b: Book) => {
     setEditingId(b.id);
     setEditTitle(b.title);
@@ -224,7 +263,16 @@ export default function App() {
                     <input value={editTitle} onChange={(e) => setEditTitle(e.target.value)} placeholder="Название" />
                     <input value={editAuthor} onChange={(e) => setEditAuthor(e.target.value)} placeholder="Автор" />
                     <textarea value={editDesc} onChange={(e) => setEditDesc(e.target.value)} placeholder="Описание" />
-                    <input type="text" value={editCover} onChange={(e) => setEditCover(e.target.value)} placeholder="Ссылка на фото книги" />
+                    <label className="file-label">
+                      📷 Выбрать фото с телефона
+                      <input type="file" accept="image/*" style={{ display: "none" }} onChange={(e) => handleEditCoverFile(e.target.files?.[0])} />
+                    </label>
+                    {editCover && (
+                      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                        <img src={editCover} alt="" style={{ width: 60, height: 60, objectFit: "cover", borderRadius: 6 }} />
+                        <button className="btn btn-dark" onClick={() => setEditCover("")}>Убрать фото</button>
+                      </div>
+                    )}
                     <div className="actions">
                       <button className="btn btn-white" disabled={pendingEdit} onClick={saveEdit}>
                         {pendingEdit ? "Сохранение…" : "Сохранить"}
@@ -270,7 +318,16 @@ export default function App() {
             <input placeholder="Название" value={newTitle} onChange={(e) => setNewTitle(e.target.value)} />
             <input placeholder="Автор" value={newAuthor} onChange={(e) => setNewAuthor(e.target.value)} />
             <textarea placeholder="Описание" value={newDesc} onChange={(e) => setNewDesc(e.target.value)} />
-            <input type="text" placeholder="Ссылка на фото книги (URL)" value={newCover} onChange={(e) => setNewCover(e.target.value)} />
+            <label className="file-label">
+              📷 Выбрать фото с телефона
+              <input type="file" accept="image/*" style={{ display: "none" }} onChange={(e) => handleNewCoverFile(e.target.files?.[0])} />
+            </label>
+            {newCover && (
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <img src={newCover} alt="" style={{ width: 60, height: 60, objectFit: "cover", borderRadius: 6 }} />
+                <button className="btn btn-dark" onClick={() => setNewCover("")}>Убрать фото</button>
+              </div>
+            )}
             <button className="btn btn-white" disabled={pendingSave} onClick={handleAddBook}>
               {pendingSave ? "Публикация…" : "Опубликовать"}
             </button>
@@ -362,7 +419,6 @@ export default function App() {
           <strong>🕐 Режим работы:</strong>
           <ul>
             <li>Понедельник: 9:00 – 12:00</li>
-            <li>Четверг: 11:00 – 15:00</li>
           </ul>
         </section>
       </div>
