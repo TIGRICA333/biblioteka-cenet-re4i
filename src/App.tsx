@@ -44,6 +44,27 @@ export default function App() {
     loadInitialData();
   }, []);
 
+  // Автообновление: при возврате на вкладку и каждые 30 секунд
+  useEffect(() => {
+    const onVisible = () => {
+      if (!document.hidden) {
+        loadBooks().then(setBooks);
+        loadRequests().then(setRequests);
+      }
+    };
+    document.addEventListener("visibilitychange", onVisible);
+    const timer = setInterval(() => {
+      if (!document.hidden) {
+        loadBooks().then(setBooks);
+        loadRequests().then(setRequests);
+      }
+    }, 30000);
+    return () => {
+      document.removeEventListener("visibilitychange", onVisible);
+      clearInterval(timer);
+    };
+  }, []);
+
   async function loadInitialData() {
     try {
       setErrorMsg("");
