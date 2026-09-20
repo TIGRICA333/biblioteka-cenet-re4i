@@ -5,8 +5,11 @@ import {
   ADMIN_PASSWORD,
   loadBooks,
   loadRequests,
-  saveBooks,
-  saveRequests,
+  addBook,
+  updateBook,
+  deleteBook,
+  addRequest,
+  deleteRequest,
 } from "./data";
 
 export default function App() {
@@ -58,14 +61,39 @@ export default function App() {
     }
   }
 
-  async function persistBooks(next: Book[]) {
-    setBooks(next);
-    await saveBooks(next);
+  async function addBookLocal(book: Book) {
+    setBooks([book, ...books]);
+    const ok = await addBook(book);
+    if (!ok) alert("Не удалось сохранить книгу в базе. Проверьте интернет и попробуйте ещё раз.");
   }
 
-  async function persistRequests(next: ReaderRequest[]) {
-    setRequests(next);
-    await saveRequests(next);
+  async function updateBookLocal(book: Book) {
+    setBooks(books.map((b) => (b.id === book.id ? book : b)));
+    const ok = await updateBook(book);
+    if (!ok) alert("Не удалось сохранить изменения. Попробуйте ещё раз.");
+  }
+
+  async function removeBookLocal(id: number) {
+    setBooks(books.filter((b) => b.id !== id));
+    const ok = await deleteBook(id);
+    if (!ok) alert("Не удалось удалить книгу из базы. Попробуйте ещё раз.");
+    if (ok) await reloadBooks();
+  }
+
+  async function addRequestLocal(request: ReaderRequest) {
+    setRequests([request, ...requests]);
+    const ok = await addRequest(request);
+    if (!ok) alert("Не удалось отправить заявку. Попробуйте ещё раз.");
+  }
+
+  async function removeRequestLocal(id: number) {
+    setRequests(requests.filter((r) => r.id !== id));
+    await deleteRequest(id);
+  }
+
+  async function reloadBooks() {
+    const fresh = await loadBooks();
+    setBooks(fresh);
   }
 
   const handleAdminLogin = () => {
@@ -78,10 +106,9 @@ export default function App() {
     }
   };
 
-  const handleBook = (id: number) => {
-    persistBooks(
-      books.map((b) => (b.id === id ? { ...b, available: false } : b))
-    );
+  const handleBook = async (id: number) => {
+    const book = books.find((b) => b.id === id);
+    if (book) await updateBookLocal({ ...book, available: false });
     alert("Книга забронирована! Приходите за ней в часы работы библиотеки.");
   };
 
@@ -97,7 +124,7 @@ export default function App() {
     };
     setPendingSave(true);
     try {
-      await persistBooks([next, ...books]);
+      await addBookLocal(next);
     } finally {
       setPendingSave(false);
     }
@@ -161,9 +188,10 @@ export default function App() {
         ? { ...b, title: editTitle, author: editAuthor, description: editDesc, coverUrl: editCover }
         : b
     );
+    const updatedBook = updated.find((b) => b.id === editingId)!;
     setPendingEdit(true);
     try {
-      await persistBooks(updated);
+      await updateBookLocal(updatedBook);
     } finally {
       setPendingEdit(false);
     }
@@ -172,29 +200,25 @@ export default function App() {
 
   const handleDeleteBook = async (id: number) => {
     if (!confirm("Удалить эту книгу?")) return;
-    const next = books.filter((b) => b.id !== id);
-    await persistBooks(next);
+    await removeBookLocal(id);
   };
 
   const toggleAvailable = async (id: number) => {
-    const next = books.map((b) => (b.id === id ? { ...b, available: !b.available } : b));
-    await persistBooks(next);
+    const book = books.find((b) => b.id === id);
+    if (book) await updateBookLocal({ ...book, available: !book.available });
   };
 
   const handleSendRequest = async () => {
     if (!reqMessage.trim()) return;
-    const next: ReaderRequest[] = [
-      {
-        id: Date.now(),
-        name: reqName.trim() || "Читатель",
-        message: reqMessage.trim(),
-        date: new Date().toLocaleString("ru-RU"),
-      },
-      ...requests,
-    ];
+    const nextRequest: ReaderRequest = {
+      id: Date.now(),
+      name: reqName.trim() || "Читатель",
+      message: reqMessage.trim(),
+      date: new Date().toLocaleString("ru-RU"),
+    };
     setPendingSave(true);
     try {
-      await persistRequests(next);
+      await addRequestLocal(nextRequest);
     } finally {
       setPendingSave(false);
     }
@@ -204,8 +228,7 @@ export default function App() {
   };
 
   const handleDeleteRequest = async (id: number) => {
-    const next = requests.filter((r) => r.id !== id);
-    await persistRequests(next);
+    await removeRequestLocal(id);
   };
 
   const visibleBooks = books.filter((b) =>
@@ -255,7 +278,7 @@ export default function App() {
           <ul className="book-list">
             {visibleBooks.map((b) => (
               <li key={b.id} className="book-item">
-                {b.coverUrl && (
+        {b.coverUrl && (
                   <img src={b.coverUrl} alt={b.title} className="book-cover" />
                 )}
                 {editingId === b.id ? (

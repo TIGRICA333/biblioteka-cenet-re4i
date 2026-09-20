@@ -1,3 +1,5 @@
+import { supabase } from "./supabase";
+
 export interface Book {
   id: number;
   title: string;
@@ -19,6 +21,8 @@ export const ADMIN_PASSWORD = "budushchee2024";
 const BOOKS_TABLE = "books";
 const REQUESTS_TABLE = "reader_requests";
 
+// ---------- Книги ----------
+
 export async function loadBooks(): Promise<Book[]> {
   const { data, error } = await supabase
     .from(BOOKS_TABLE)
@@ -31,25 +35,50 @@ export async function loadBooks(): Promise<Book[]> {
   return (data ?? []).map(mapBookRow);
 }
 
-export async function saveBooks(books: Book[]): Promise<void> {
-  const ids = books.map((b) => b.id);
-  const { error: deleteError } = await supabase
-    .from(BOOKS_TABLE)
-    .delete()
-    .notIn("id", ids);
-  if (deleteError) {
-    console.error("Ошибка синхронизации книг (удаление):", deleteError);
+export async function addBook(book: Book): Promise<boolean> {
+  const { error } = await supabase.from(BOOKS_TABLE).insert({
+    id: book.id,
+    title: book.title,
+    author: book.author,
+    description: book.description,
+    available: book.available,
+    cover_url: book.coverUrl,
+  });
+  if (error) {
+    console.error("Ошибка добавления книги:", error);
+    return false;
   }
-
-  for (const book of books) {
-    const { error: upsertError } = await supabase
-      .from(BOOKS_TABLE)
-      .upsert(book, { onConflict: "id" });
-    if (upsertError) {
-      console.error("Ошибка синхронизации книги:", upsertError);
-    }
-  }
+  return true;
 }
+
+export async function updateBook(book: Book): Promise<boolean> {
+  const { error } = await supabase
+    .from(BOOKS_TABLE)
+    .update({
+      title: book.title,
+      author: book.author,
+      description: book.description,
+      available: book.available,
+      cover_url: book.coverUrl,
+    })
+    .eq("id", book.id);
+  if (error) {
+    console.error("Ошибка обновления книги:", error);
+    return false;
+  }
+  return true;
+}
+
+export async function deleteBook(id: number): Promise<boolean> {
+  const { error } = await supabase.from(BOOKS_TABLE).delete().eq("id", id);
+  if (error) {
+    console.error("Ошибка удаления книги:", error);
+    return false;
+  }
+  return true;
+}
+
+// ---------- Заявки читателей ----------
 
 export async function loadRequests(): Promise<ReaderRequest[]> {
   const { data, error } = await supabase
@@ -63,25 +92,29 @@ export async function loadRequests(): Promise<ReaderRequest[]> {
   return (data ?? []).map(mapRequestRow);
 }
 
-export async function saveRequests(requests: ReaderRequest[]): Promise<void> {
-  const ids = requests.map((r) => r.id);
-  const { error: deleteError } = await supabase
-    .from(REQUESTS_TABLE)
-    .delete()
-    .notIn("id", ids);
-  if (deleteError) {
-    console.error("Ошибка синхронизации заявок (удаление):", deleteError);
+export async function addRequest(request: ReaderRequest): Promise<boolean> {
+  const { error } = await supabase.from(REQUESTS_TABLE).insert({
+    id: request.id,
+    name: request.name,
+    message: request.message,
+  });
+  if (error) {
+    console.error("Ошибка добавления заявки:", error);
+    return false;
   }
-
-  for (const request of requests) {
-    const { error: upsertError } = await supabase
-      .from(REQUESTS_TABLE)
-      .upsert(request, { onConflict: "id" });
-    if (upsertError) {
-      console.error("Ошибка синхронизации заявки:", upsertError);
-    }
-  }
+  return true;
 }
+
+export async function deleteRequest(id: number): Promise<boolean> {
+  const { error } = await supabase.from(REQUESTS_TABLE).delete().eq("id", id);
+  if (error) {
+    console.error("Ошибка удаления заявки:", error);
+    return false;
+  }
+  return true;
+}
+
+// ---------- Маппинг ----------
 
 function mapBookRow(row: Record<string, unknown>): Book {
   return {
@@ -109,5 +142,3 @@ function formatDate(value: unknown): string {
   if (isNaN(d.getTime())) return new Date().toLocaleString("ru-RU");
   return d.toLocaleString("ru-RU");
 }
-
-import { supabase } from "./supabase";
