@@ -1,6 +1,7 @@
 -- ============================================================
--- Таблицы для библиотеки Центра речи «Будущее»
--- Выполни этот файл в Supabase SQL Editor один раз.
+-- Библиотека Центра речи «Будущее» — SQL для восстановления.
+-- Выполни этот файл в Supabase → SQL Editor → New query → Run.
+-- (Проект нужно предварительно создать заново, см. сообщение в чате.)
 -- ============================================================
 
 -- Книги
@@ -26,7 +27,8 @@ create policy "anon может добавлять книги"
 
 create policy "anon может обновлять книги"
   on books for update
-  using (true);
+  using (true)
+  with check (true);
 
 create policy "anon может удалять книги"
   on books for delete
@@ -53,3 +55,25 @@ create policy "anon может создавать заявки"
 create policy "anon может удалять заявки"
   on reader_requests for delete
   using (true);
+
+-- Настройки сайта (график работы и т.п.) — одна строка с id = 1
+create table if not exists site_settings (
+  id          int primary key default 1,
+  schedule    text not null default 'Понедельник: 9:00 – 16:00',
+  updated_at  timestamptz not null default now()
+);
+
+insert into site_settings (id, schedule)
+values (1, 'Понедельник: 9:00 – 16:00')
+on conflict (id) do nothing;
+
+alter table site_settings enable row level security;
+
+create policy "все могут читать настройки"
+  on site_settings for select
+  using (true);
+
+create policy "все могут менять настройки"
+  on site_settings for update
+  using (true)
+  with check (true);

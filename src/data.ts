@@ -20,6 +20,27 @@ export const ADMIN_PASSWORD = "budushchee2024";
 
 const BOOKS_TABLE = "books";
 const REQUESTS_TABLE = "reader_requests";
+const SETTINGS_TABLE = "site_settings";
+
+// Максимальный размер фото-обложки в символах data-URL (~350 КБ).
+// Большие фото сжимаются сильнее, а если не помещаются — отклоняются
+// с понятной ошибкой вместо молчаливого сбоя сохранения.
+export const MAX_COVER_LENGTH = 470000;
+
+export class DataError extends Error {}
+
+function friendlyError(error: { message?: string } | null): string {
+  if (!error) return "Неизвестная ошибка.";
+  const msg = error.message ?? "";
+  if (
+    msg.includes("Failed to fetch") ||
+    msg.includes("NetworkError") ||
+    msg.includes("fetch failed")
+  ) {
+    return "Нет связи с базой данных. Возможно, проект Supabase выключен или удалён. Проверьте статус проекта на supabase.com.";
+  }
+  return msg || "Неизвестная ошибка.";
+}
 
 // ---------- Книги ----------
 
@@ -28,14 +49,11 @@ export async function loadBooks(): Promise<Book[]> {
     .from(BOOKS_TABLE)
     .select("*")
     .order("id", { ascending: false });
-  if (error) {
-    console.error("Ошибка загрузки книг из Supabase:", error);
-    return [];
-  }
+  if (error) throw new DataError(friendlyError(error));
   return (data ?? []).map(mapBookRow);
 }
 
-export async function addBook(book: Book): Promise<boolean> {
+export async function addBook(book: Book): Promise<void> {
   const { error } = await supabase.from(BOOKS_TABLE).insert({
     id: book.id,
     title: book.title,
@@ -44,14 +62,10 @@ export async function addBook(book: Book): Promise<boolean> {
     available: book.available,
     cover_url: book.coverUrl,
   });
-  if (error) {
-    console.error("Ошибка добавления книги:", error);
-    return false;
-  }
-  return true;
+  if (error) throw new DataError(friendlyError(error));
 }
 
-export async function updateBook(book: Book): Promise<boolean> {
+export async function updateBook(book: Book): Promise<void> {
   const { error } = await supabase
     .from(BOOKS_TABLE)
     .update({
@@ -62,20 +76,12 @@ export async function updateBook(book: Book): Promise<boolean> {
       cover_url: book.coverUrl,
     })
     .eq("id", book.id);
-  if (error) {
-    console.error("Ошибка обновления книги:", error);
-    return false;
-  }
-  return true;
+  if (error) throw new DataError(friendlyError(error));
 }
 
-export async function deleteBook(id: number): Promise<boolean> {
+export async function deleteBook(id: number): Promise<void> {
   const { error } = await supabase.from(BOOKS_TABLE).delete().eq("id", id);
-  if (error) {
-    console.error("Ошибка удаления книги:", error);
-    return false;
-  }
-  return true;
+  if (error) throw new DataError(friendlyError(error));
 }
 
 // ---------- Заявки читателей ----------
@@ -85,33 +91,42 @@ export async function loadRequests(): Promise<ReaderRequest[]> {
     .from(REQUESTS_TABLE)
     .select("*")
     .order("created_at", { ascending: false });
-  if (error) {
-    console.error("Ошибка загрузки заявок из Supabase:", error);
-    return [];
-  }
+  if (error) throw new DataError(friendlyError(error));
   return (data ?? []).map(mapRequestRow);
 }
 
-export async function addRequest(request: ReaderRequest): Promise<boolean> {
+export async function addRequest(request: ReaderRequest): Promise<void> {
   const { error } = await supabase.from(REQUESTS_TABLE).insert({
     id: request.id,
     name: request.name,
     message: request.message,
   });
-  if (error) {
-    console.error("Ошибка добавления заявки:", error);
-    return false;
-  }
-  return true;
+  if (error) throw new DataError(friendlyError(error));
 }
 
-export async function deleteRequest(id: number): Promise<boolean> {
+export async function deleteRequest(id: number): Promise<void> {
   const { error } = await supabase.from(REQUESTS_TABLE).delete().eq("id", id);
-  if (error) {
-    console.error("Ошибка удаления заявки:", error);
-    return false;
-  }
-  return true;
+  if (error) throw new DataError(friendlyError(error));
+}
+
+// ---------- Настройки (график работы) ----------
+
+export async function loadSchedule(): Promise<string> {
+  const { data, error } = await supabase
+    .from(SETTINGS_TABLE)
+    .select("schedule")
+    .eq("id", 1)
+    .maybeSingle();
+  if (error) throw new DataError(friendlyError(error));
+  return String(data?.schedule ?? "");
+}
+
+export async function saveSchedule(schedule: string): Promise<void> {
+  const { error } = await supabase
+    .from(SETTINGS_TABLE)
+    .update({ schedule, updated_at: new Date().toISOString() })
+    .eq("id", 1);
+  if (error) throw new DataError(friendlyError(error));
 }
 
 // ---------- Маппинг ----------
