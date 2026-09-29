@@ -8,6 +8,7 @@ import {
   loadRequests,
   loadSchedule,
   saveSchedule,
+  ScheduleDay,
   addBook,
   updateBook,
   deleteBook,
@@ -48,8 +49,8 @@ export default function App() {
   const [editCover, setEditCover] = useState("");
   const [pendingEdit, setPendingEdit] = useState(false);
 
-  const [schedule, setSchedule] = useState("");
-  const [scheduleDraft, setScheduleDraft] = useState("");
+  const [schedule, setSchedule] = useState<ScheduleDay[]>([]);
+  const [scheduleDraft, setScheduleDraft] = useState<ScheduleDay[]>([]);
   const [editingSchedule, setEditingSchedule] = useState(false);
   const [pendingSchedule, setPendingSchedule] = useState(false);
   const [scheduleError, setScheduleError] = useState("");
@@ -98,7 +99,7 @@ export default function App() {
       if (!editingSchedule) setScheduleDraft(s);
     } catch {
       // Если таблица настроек ещё не создана — просто не показываем график
-      setSchedule("");
+      setSchedule([]);
     }
   }
 
@@ -364,6 +365,18 @@ export default function App() {
     }
   };
 
+  const toggleDraftDay = (name: string) => {
+    setScheduleDraft((prev) =>
+      prev.map((d) => (d.name === name ? { ...d, on: !d.on } : d))
+    );
+  };
+
+  const setDraftTime = (name: string, time: string) => {
+    setScheduleDraft((prev) =>
+      prev.map((d) => (d.name === name ? { ...d, time } : d))
+    );
+  };
+
   const visibleBooks = books.filter((b) =>
     (b.title + " " + b.author).toLowerCase().includes(bookSearch.toLowerCase())
   );
@@ -591,34 +604,99 @@ export default function App() {
             <p style={{ margin: "6px 0 14px" }}>
               г. Раменское, ул. Красноармейская, д. 13
             </p>
-            {schedule && (
+            {schedule.some((d) => d.on) && (
               <>
                 <strong>🕐 Режим работы:</strong>
-                {editingSchedule && isAdmin ? (
-                  <div>
-                    <textarea
-                      value={scheduleDraft}
-                      onChange={(e) => setScheduleDraft(e.target.value)}
-                      placeholder={"Например:\nПонедельник: 9:00 – 16:00\nСреда: 10:00 – 17:00"}
-                      rows={4}
-                    />
-                    {scheduleError && <div className="admin-error">{scheduleError}</div>}
-                    <div className="actions">
-                      <button className="btn btn-white" disabled={pendingSchedule} onClick={handleSaveSchedule}>
-                        {pendingSchedule ? "Сохранение…" : "Сохранить график"}
-                      </button>
-                      <button className="btn btn-dark" onClick={() => setEditingSchedule(false)}>Отмена</button>
-                    </div>
-                  </div>
-                ) : (
-                  <div style={{ whiteSpace: "pre-line", margin: "6px 0" }}>{schedule}</div>
-                )}
-                {isAdmin && !editingSchedule && (
-                  <button className="btn btn-dark" onClick={() => { setScheduleDraft(schedule); setEditingSchedule(true); }}>
-                    ✏️ Изменить график
-                  </button>
-                )}
+                <ul style={{ margin: "6px 0", paddingLeft: 20 }}>
+                  {schedule.filter((d) => d.on).map((d) => (
+                    <li key={d.name}>
+                      {d.name}: {d.time}
+                    </li>
+                  ))}
+                </ul>
               </>
+            )}
+            {!schedule.some((d) => d.on) && <p style={{ fontSize: 14 }}>🕐 Часы работы уточняются.</p>}
+            {isAdmin && !editingSchedule && (
+              <button
+                className="btn btn-dark"
+                onClick={() => {
+                  setScheduleDraft(schedule);
+                  setEditingSchedule(true);
+                }}
+              >
+                ✏️ Изменить график
+              </button>
+            )}
+            {isAdmin && editingSchedule && (
+              <div className="admin-form" style={{ marginTop: 10 }}>
+                <h3 style={{ margin: "0 0 10px" }}>🕐 График работы</h3>
+                {scheduleDraft.map((d) => (
+                  <div
+                    key={d.name}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      gap: 10,
+                      padding: "6px 0",
+                      borderBottom: "1px solid rgba(0,0,0,0.08)",
+                    }}
+                  >
+                    <span style={{ minWidth: 110, fontWeight: 600 }}>{d.name}</span>
+                    <button
+                      onClick={() => toggleDraftDay(d.name)}
+                      aria-pressed={d.on}
+                      style={{
+                        width: 52,
+                        height: 28,
+                        borderRadius: 14,
+                        border: "none",
+                        cursor: "pointer",
+                        position: "relative",
+                        background: d.on ? "#2e7d32" : "#bdbdbd",
+                        transition: "background 0.2s",
+                        flexShrink: 0,
+                      }}
+                      title={d.on ? "Выключить день" : "Включить день"}
+                    >
+                      <span
+                        style={{
+                          position: "absolute",
+                          top: 3,
+                          left: d.on ? 27 : 3,
+                          width: 22,
+                          height: 22,
+                          borderRadius: "50%",
+                          background: "#fff",
+                          transition: "left 0.2s",
+                        }}
+                      />
+                    </button>
+                    <input
+                      value={d.time}
+                      onChange={(e) => setDraftTime(d.name, e.target.value)}
+                      disabled={!d.on}
+                      placeholder="9:00 – 16:00"
+                      style={{
+                        flex: 1,
+                        minWidth: 90,
+                        padding: "6px 8px",
+                        borderRadius: 6,
+                        border: "1px solid rgba(0,0,0,0.2)",
+                        opacity: d.on ? 1 : 0.5,
+                      }}
+                    />
+                  </div>
+                ))}
+                {scheduleError && <div className="admin-error">{scheduleError}</div>}
+                <div className="actions">
+                  <button className="btn btn-white" disabled={pendingSchedule} onClick={handleSaveSchedule}>
+                    {pendingSchedule ? "Сохранение…" : "Сохранить график"}
+                  </button>
+                  <button className="btn btn-dark" onClick={() => setEditingSchedule(false)}>Отмена</button>
+                </div>
+              </div>
             )}
           </section>
         </div>

@@ -111,20 +111,59 @@ export async function deleteRequest(id: number): Promise<void> {
 
 // ---------- Настройки (график работы) ----------
 
-export async function loadSchedule(): Promise<string> {
+// Настройки (график работы) — одна строка с id = 1.
+// График хранится как JSON-массив дней: [{name, on, time}]
+export interface ScheduleDay {
+  name: string;
+  on: boolean;
+  time: string;
+}
+
+export const DEFAULT_SCHEDULE: ScheduleDay[] = [
+  { name: "Понедельник", on: false, time: "9:00 – 16:00" },
+  { name: "Вторник", on: false, time: "9:00 – 16:00" },
+  { name: "Среда", on: false, time: "9:00 – 16:00" },
+  { name: "Четверг", on: false, time: "9:00 – 16:00" },
+  { name: "Пятница", on: false, time: "9:00 – 16:00" },
+  { name: "Суббота", on: false, time: "9:00 – 14:00" },
+  { name: "Воскресенье", on: false, time: "выходной" },
+];
+
+export async function loadSchedule(): Promise<ScheduleDay[]> {
   const { data, error } = await supabase
     .from(SETTINGS_TABLE)
     .select("schedule")
     .eq("id", 1)
     .maybeSingle();
   if (error) throw new DataError(friendlyError(error));
-  return String(data?.schedule ?? "");
+  return parseSchedule(data?.schedule);
 }
 
-export async function saveSchedule(schedule: string): Promise<void> {
+export function parseSchedule(raw: unknown): ScheduleDay[] {
+  if (!raw) return DEFAULT_SCHEDULE;
+  try {
+    const parsed = JSON.parse(String(raw));
+    if (!Array.isArray(parsed)) return DEFAULT_SCHEDULE;
+    return DEFAULT_SCHEDULE.map((def) => {
+      const found = parsed.find((d: { name?: unknown }) => d?.name === def.name);
+      return found
+        ? { name: def.name, on: Boolean(found.on), time: String(found.time ?? def.time) }
+        : def;
+    });
+  } catch {
+    // Старый формат (простая строка) — переносим в понедельник
+    const text = String(raw).trim();
+    if (!text) return DEFAULT_SCHEDULE;
+    return DEFAULT_SCHEDULE.map((d, i) =>
+      i === 0 ? { ...d, on: true, time: text.replace(/^Понедельник:\s*/i, "") } : d
+    );
+  }
+}
+
+export async function saveSchedule(days: ScheduleDay[]): Promise<void> {
   const { error } = await supabase
     .from(SETTINGS_TABLE)
-    .update({ schedule, updated_at: new Date().toISOString() })
+    .update({ schedule: JSON.stringify(days), updated_at: new Date().toISOString() })
     .eq("id", 1);
   if (error) throw new DataError(friendlyError(error));
 }
