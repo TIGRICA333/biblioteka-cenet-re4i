@@ -203,6 +203,43 @@ body {
     animation: none;
   }
   .walker-book .picked { opacity: 1; }
+  .falling-item { animation: none; opacity: 0.25; }
+}
+
+/* ---------- Падающие осенние листочки и книжки ---------- */
+.falling-item {
+  position: absolute;
+  top: -50px;
+  font-size: 22px;
+  line-height: 1;
+  animation-name: fall-down, sway;
+  animation-timing-function: linear, ease-in-out;
+  animation-iteration-count: infinite, infinite;
+  opacity: 0.75;
+  pointer-events: none;
+}
+
+@keyframes fall-down {
+  0%   { transform: translateY(-60px); }
+  100% { transform: translateY(115vh); }
+}
+
+@keyframes sway {
+  0%, 100% { margin-left: 0; }
+  25%      { margin-left: 22px; }
+  75%      { margin-left: -22px; }
+}
+
+@keyframes spin-slow {
+  from { rotate: 0deg; }
+  to   { rotate: 360deg; }
+}
+
+.falling-item.spin {
+  animation-name: fall-down, sway, spin-slow;
+  animation-duration: inherit;
+  animation-timing-function: linear, ease-in-out, linear;
+  animation-iteration-count: infinite, infinite, infinite;
 }
 
 button {

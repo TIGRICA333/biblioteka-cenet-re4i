@@ -81,6 +81,7 @@ function LibraryBackground() {
           ))}
         </div>
       ))}
+      <FallingItems />
       <div className="librarian-desk">
         <div className="librarian">🧑‍💼</div>
         <div className="desk">
@@ -88,6 +89,39 @@ function LibraryBackground() {
         </div>
       </div>
     </div>
+  );
+}
+
+function FallingItems() {
+  const items = useMemo(() => {
+    const emojis = ["🍂", "🍁", "🍃", "📚", "📖", "📕", "📗", "🍂", "🍁", "📘"];
+    const rnd = shelfRandom(97);
+    return Array.from({ length: 16 }, (_, i) => ({
+      emoji: emojis[i % emojis.length],
+      left: Math.round(rnd() * 96) + 2,
+      duration: 9 + Math.round(rnd() * 12),
+      delay: -Math.round(rnd() * 20),
+      size: 16 + Math.round(rnd() * 14),
+      spin: rnd() < 0.5,
+    }));
+  }, []);
+  return (
+    <>
+      {items.map((it, i) => (
+        <span
+          key={i}
+          className={"falling-item" + (it.spin ? " spin" : "")}
+          style={{
+            left: it.left + "%",
+            fontSize: it.size,
+            animationDuration: `${it.duration}s, ${2 + (i % 3)}s, ${it.duration}s`,
+            animationDelay: `${it.delay}s, 0s, ${it.delay}s`,
+          }}
+        >
+          {it.emoji}
+        </span>
+      ))}
+    </>
   );
 }
 
