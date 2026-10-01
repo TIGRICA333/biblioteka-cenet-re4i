@@ -138,6 +138,49 @@ function WalkingBook() {
   );
 }
 
+// Читальный уголок: столы по кругу и читающие за ними дети
+function ReadingCircle() {
+  const seats = useMemo(() => {
+    const readers = ["👧", "🧒", "👦", "🧒", "👧"];
+    const books = ["📖", "📕", "📗", "📘", "📙"];
+    return readers.map((emoji, i) => {
+      const angle = ((-90 + i * 72) * Math.PI) / 180;
+      return {
+        emoji,
+        book: books[i],
+        left: Math.cos(angle) * 40,
+        top: Math.sin(angle) * 28,
+        delay: i * 0.5,
+      };
+    });
+  }, []);
+  return (
+    <div className="reading-circle" aria-hidden="true">
+      <div className="r-rug" />
+      {seats.map((s, i) => (
+        <div
+          key={i}
+          className="r-seat"
+          style={{
+            left: `calc(50% + ${s.left}%)`,
+            top: `calc(50% + ${s.top}%)`,
+            animationDelay: `${s.delay}s`,
+          }}
+        >
+          <span className="r-reader" style={{ animationDelay: `${s.delay + 0.2}s` }}>
+            {s.emoji}
+          </span>
+          <div className="r-table">
+            <span className="r-book" style={{ animationDelay: `${s.delay}s` }}>
+              {s.book}
+            </span>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 
 export default function App() {
   const [books, setBooks] = useState<Book[]>([]);
@@ -548,6 +591,8 @@ export default function App() {
           </button>
         </div>
       )}
+
+      <ReadingCircle />
 
       <div className="grid">
         {/* Красная панель 1: книги, которые уже есть */}

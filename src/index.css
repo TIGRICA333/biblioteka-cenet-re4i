@@ -568,6 +568,78 @@ textarea {
   margin-bottom: 10px;
 }
 
+/* ---------- Читальный уголок: столы по кругу и читающие дети ---------- */
+.reading-circle {
+  position: relative;
+  height: 200px;
+  max-width: 640px;
+  margin: 18px auto 0;
+  pointer-events: none;
+}
+
+.r-rug {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 80%;
+  height: 88%;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: radial-gradient(ellipse at center, rgba(201, 168, 121, 0.35), rgba(201, 168, 121, 0.08));
+  border: 2px dashed rgba(139, 94, 43, 0.3);
+}
+
+.r-seat {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  animation: seat-bob 3.4s ease-in-out infinite;
+}
+
+.r-reader {
+  font-size: 26px;
+  line-height: 1;
+  z-index: 1;
+  animation: reader-nod 4.2s ease-in-out infinite;
+}
+
+.r-table {
+  position: relative;
+  width: 54px;
+  height: 34px;
+  margin-top: -4px;
+  border-radius: 50%;
+  background: linear-gradient(180deg, #b98a4e, #96692f);
+  box-shadow: 0 4px 7px rgba(0, 0, 0, 0.25), inset 0 2px 0 rgba(255, 255, 255, 0.2);
+}
+
+.r-book {
+  position: absolute;
+  left: 50%;
+  top: -9px;
+  font-size: 20px;
+  transform: translateX(-50%);
+  transform-origin: bottom center;
+  animation: book-sway 2.8s ease-in-out infinite;
+}
+
+@keyframes seat-bob {
+  0%, 100% { transform: translate(-50%, -50%); }
+  50%      { transform: translate(-50%, calc(-50% - 5px)); }
+}
+
+@keyframes reader-nod {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(2px); }
+}
+
+@keyframes book-sway {
+  0%, 100% { transform: translateX(-50%) rotate(-7deg); }
+  50%      { transform: translateX(-50%) rotate(7deg); }
+}
+
 /* Две красные панели: список книг + внесение новой книги */
 .books-column {
   display: flex;
@@ -602,4 +674,14 @@ textarea {
     margin: 0 auto;
     padding: 16px;
   }
+
+  /* Читальный уголок на телефоне компактнее */
+  .reading-circle {
+    height: 150px;
+    margin-top: 12px;
+  }
+
+  .r-reader { font-size: 22px; }
+  .r-table { width: 44px; height: 28px; }
+  .r-book { font-size: 17px; top: -8px; }
 }
