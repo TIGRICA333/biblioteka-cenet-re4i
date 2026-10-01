@@ -198,13 +198,13 @@ function startForest(ctx: AudioContext, master: GainNode) {
   filter.frequency.value = 420;
 
   const windGain = ctx.createGain();
-  windGain.gain.value = 0.13;
+  windGain.gain.value = 0.18;
 
   // Ветерок «дышит»: громкость и тембр плавно колышутся
   const lfo = ctx.createOscillator();
   const lfoGain = ctx.createGain();
   lfo.frequency.value = 0.08;
-  lfoGain.gain.value = 0.07;
+  lfoGain.gain.value = 0.08;
   lfo.connect(lfoGain).connect(windGain.gain);
 
   const filterLfo = ctx.createOscillator();
@@ -251,8 +251,8 @@ function ForestToggle() {
       const Ctx = window.AudioContext ?? (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
       const ctx = new Ctx();
       const master = ctx.createGain();
-      // Приятный, ненавязчивый уровень громкости
-      master.gain.value = 0.75;
+      // Заметно слышимый, но мягкий уровень громкости
+      master.gain.value = 1.15;
       master.connect(ctx.destination);
       ctxRef.current = ctx;
       masterRef.current = master;
