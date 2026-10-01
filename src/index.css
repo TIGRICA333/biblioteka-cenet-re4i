@@ -550,4 +550,11 @@ textarea {
   .header h1 {
     font-size: 24px;
   }
+
+  /* Голубая панель «О библиотеке» на телефоне чуть уже */
+  .info-panel {
+    max-width: 320px;
+    margin: 0 auto;
+    padding: 16px;
+  }
 }
