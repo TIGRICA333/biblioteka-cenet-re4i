@@ -13,6 +13,115 @@ body {
   min-height: 100vh;
 }
 
+/* ---------- Фон: книжные стеллажи ---------- */
+.library-bg {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  background: linear-gradient(180deg, #f5ecdd 0%, #efe2cc 100%);
+  pointer-events: none;
+}
+
+.shelf-row {
+  position: absolute;
+  left: 0;
+  right: 0;
+  display: flex;
+  gap: 40px;
+  justify-content: center;
+  opacity: 0.5;
+}
+
+.shelf {
+  width: 320px;
+  flex-shrink: 0;
+}
+
+.shelf-board {
+  height: 10px;
+  background: linear-gradient(180deg, #a9743f, #8a5a2b);
+  border-radius: 3px;
+  box-shadow: 0 3px 5px rgba(0, 0, 0, 0.2);
+}
+
+.shelf-books {
+  display: flex;
+  align-items: flex-end;
+  gap: 4px;
+  height: 92px;
+  padding: 0 6px;
+  margin-bottom: 0;
+}
+
+.mini-book {
+  width: 18px;
+  border-radius: 3px 3px 0 0;
+  box-shadow: inset -3px 0 0 rgba(0, 0, 0, 0.18);
+  transform-origin: bottom left;
+}
+
+.mini-book.lean {
+  transform: rotate(9deg);
+  margin-left: 6px;
+}
+
+.shelf-legs {
+  height: 14px;
+}
+
+/* ---------- Анимированная книжка-помощник ---------- */
+.walker-book {
+  position: fixed;
+  bottom: 26px;
+  left: 0;
+  z-index: 5;
+  font-size: 40px;
+  line-height: 1;
+  cursor: default;
+  filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.25));
+  animation: book-walk 38s linear infinite;
+  pointer-events: none;
+}
+
+.walker-book .picked {
+  position: absolute;
+  top: -18px;
+  right: -12px;
+  font-size: 18px;
+  opacity: 0;
+  animation: pick-book 9.5s ease-in-out infinite;
+}
+
+@keyframes book-walk {
+  0%   { transform: translateX(-60px) scaleX(1); }
+  46%  { transform: translateX(calc(100vw + 60px)) scaleX(1); }
+  50%  { transform: translateX(calc(100vw + 60px)) scaleX(-1); }
+  96%  { transform: translateX(-60px) scaleX(-1); }
+  100% { transform: translateX(-60px) scaleX(1); }
+}
+
+@keyframes book-bounce {
+  0%, 100% { margin-bottom: 0; }
+  50%      { margin-bottom: 6px; }
+}
+
+.walker-book span.body {
+  display: inline-block;
+  animation: book-bounce 0.6s ease-in-out infinite;
+}
+
+@keyframes pick-book {
+  0%, 55%, 100% { opacity: 0; transform: translateY(6px); }
+  65%, 85%      { opacity: 1; transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .walker-book, .walker-book .body, .walker-book .picked {
+    animation: none;
+  }
+}
+
 button {
   font-family: inherit;
   cursor: pointer;

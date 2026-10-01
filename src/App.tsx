@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import {
   Book,
   ReaderRequest,
@@ -17,6 +17,91 @@ import {
 } from "./data";
 
 const ADMIN_STORAGE_KEY = "biblioteka-admin-ok";
+
+// Палитра корешков для книжек на фоновых стеллажах
+const SHELF_COLORS = [
+  "#c0392b", "#2e7d52", "#d63384", "#e67e22", "#5c6bc0",
+  "#8e5a2b", "#16a085", "#f1c40f", "#7b1fa2", "#455a64",
+  "#1f5c3d", "#d35400", "#2980b9", "#c2185b", "#6d4c41",
+];
+
+// Детерминированный генератор, чтобы книжки не «прыгали» при каждой перерисовке
+function shelfRandom(seed: number) {
+  let s = seed;
+  return () => {
+    s = (s * 16807) % 2147483647;
+    return s / 2147483647;
+  };
+}
+
+interface ShelfBookSpec {
+  height: number;
+  color: string;
+  lean: boolean;
+}
+
+function makeShelf(seed: number, count: number): ShelfBookSpec[] {
+  const rnd = shelfRandom(seed);
+  return Array.from({ length: count }, () => ({
+    height: 55 + Math.round(rnd() * 37),
+    color: SHELF_COLORS[Math.floor(rnd() * SHELF_COLORS.length)],
+    lean: rnd() < 0.14,
+  }));
+}
+
+function LibraryBackground() {
+  const rows = useMemo(
+    () =>
+      [11, 23, 37].map((seed) => ({
+        top: 60 + seed % 3 * 160,
+        shelves: [makeShelf(seed, 7), makeShelf(seed + 5, 7), makeShelf(seed + 9, 7)],
+      })),
+    []
+  );
+  return (
+    <div className="library-bg" aria-hidden="true">
+      {rows.map((row, ri) => (
+        <div
+          key={ri}
+          className="shelf-row"
+          style={{
+            top: row.top,
+            transform: ri === 1 ? "scale(1.1)" : ri === 2 ? "scale(0.92)" : "none",
+            opacity: 0.32 + ri * 0.08,
+          }}
+        >
+          {row.shelves.map((books, si) => (
+            <div key={si} className="shelf">
+              <div className="shelf-books">
+                {books.map((b, bi) => (
+                  <div
+                    key={bi}
+                    className={"mini-book" + (b.lean ? " lean" : "")}
+                    style={{ height: b.height, background: b.color }}
+                  />
+                ))}
+              </div>
+              <div className="shelf-board" />
+            </div>
+          ))}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function WalkingBook() {
+  const picked = useMemo(
+    () => ["📖", "📕", "📗", "📘", "📙", "📓"][Math.floor(Math.random() * 6)],
+    []
+  );
+  return (
+    <div className="walker-book" aria-hidden="true">
+      <span className="body">📚</span>
+      <span className="picked">{picked}</span>
+    </div>
+  );
+}
 
 export default function App() {
   const [books, setBooks] = useState<Book[]>([]);
@@ -383,9 +468,10 @@ export default function App() {
   );
 
   if (loading) {
-    return (
-      <div className="app">
-        <header className="header">
+    return (    <div className="app">
+      <LibraryBackground />
+      <WalkingBook />
+      <header className="header">
           <h1>📚 Библиотека Центра речи «Будущее»</h1>
           <p>Загрузка библиотеки…</p>
         </header>
@@ -400,6 +486,8 @@ export default function App() {
 
   return (
     <div className="app">
+      <LibraryBackground />
+      <WalkingBook />
       <header className="header">
         <h1>
           📚 Библиотека Центра речи «Будущее»
