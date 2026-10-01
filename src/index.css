@@ -568,6 +568,26 @@ textarea {
   margin-bottom: 10px;
 }
 
+/* Две части панели книг: уже имеющиеся книги и внесение новой книги */
+.books-block {
+  display: block;
+}
+
+.new-book-block {
+  margin-top: 20px;
+  border-top: 2px dashed rgba(255, 255, 255, 0.55);
+}
+
+.new-book-block h3 {
+  margin: 0 0 6px;
+}
+
+.new-book-note {
+  font-size: 13px;
+  margin: 0 0 12px;
+  opacity: 0.85;
+}
+
 @media (max-width: 640px) {
   .grid {
     grid-template-columns: 1fr;

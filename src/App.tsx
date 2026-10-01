@@ -552,6 +552,8 @@ export default function App() {
       <div className="grid">
         {/* Красная панель: книги */}
         <section className="panel books-panel">
+          {/* Часть 1: книги, которые уже есть */}
+          <div className="books-block">
           <h2>📕 Наши книги</h2>
           <input
             placeholder="Поиск книги или автора…"
@@ -625,9 +627,15 @@ export default function App() {
               ))}
             </ul>
           )}
+          </div>
+
+          {/* Часть 2: внесение новой книги (только администратор) */}
           {isAdmin && (
-            <div className="admin-form">
-              <h3 style={{ margin: "0 0 10px" }}>➕ Новая книга</h3>
+            <div className="admin-form new-book-block">
+              <h3>➕ Внести новую книгу</h3>
+              <p className="new-book-note">
+                Заполните поля и нажмите «Опубликовать» — книга появится в списке выше.
+              </p>
               <input placeholder="Название" value={newTitle} onChange={(e) => setNewTitle(e.target.value)} />
               <input placeholder="Автор" value={newAuthor} onChange={(e) => setNewAuthor(e.target.value)} />
               <textarea placeholder="Описание" value={newDesc} onChange={(e) => setNewDesc(e.target.value)} />
