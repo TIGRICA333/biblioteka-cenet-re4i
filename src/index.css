@@ -11,9 +11,7 @@ body {
   margin: 0;
   background: #faf7f2;
   min-height: 100vh;
-}
-
-/* ---------- Фон: книжные стеллажи ---------- */
+}/* ---------- Фон: библиотечная сцена ---------- */
 .library-bg {
   position: fixed;
   inset: 0;
@@ -23,23 +21,24 @@ body {
   pointer-events: none;
 }
 
-.shelf-row {
+/* Стеллаж по бокам */
+.side-shelf {
   position: absolute;
-  left: 0;
-  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 190px;
   display: flex;
-  gap: 40px;
-  justify-content: center;
-  opacity: 0.5;
+  flex-direction: column;
+  justify-content: flex-start;
+  gap: 26px;
+  padding-top: 30px;
 }
 
-.shelf {
-  width: 320px;
-  flex-shrink: 0;
-}
+.side-shelf.left { left: -40px; }
+.side-shelf.right { right: -40px; }
 
 .shelf-board {
-  height: 10px;
+  height: 12px;
   background: linear-gradient(180deg, #a9743f, #8a5a2b);
   border-radius: 3px;
   box-shadow: 0 3px 5px rgba(0, 0, 0, 0.2);
@@ -49,16 +48,14 @@ body {
   display: flex;
   align-items: flex-end;
   gap: 4px;
-  height: 92px;
-  padding: 0 6px;
-  margin-bottom: 0;
+  height: 88px;
+  padding: 0 8px;
 }
 
 .mini-book {
-  width: 18px;
+  width: 17px;
   border-radius: 3px 3px 0 0;
   box-shadow: inset -3px 0 0 rgba(0, 0, 0, 0.18);
-  transform-origin: bottom left;
 }
 
 .mini-book.lean {
@@ -66,60 +63,146 @@ body {
   margin-left: 6px;
 }
 
-.shelf-legs {
-  height: 14px;
+/* Стойка библиотекаря */
+.librarian-desk {
+  position: absolute;
+  left: 200px;
+  bottom: 30px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  opacity: 0.85;
 }
 
-/* ---------- Анимированная книжка-помощник ---------- */
+.librarian {
+  font-size: 52px;
+  line-height: 1;
+  margin-bottom: -8px;
+  z-index: 2;
+}
+
+.desk {
+  width: 130px;
+  height: 66px;
+  background: linear-gradient(180deg, #b98a4e, #96692f);
+  border-radius: 6px 6px 4px 4px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.22);
+  position: relative;
+}
+
+.desk::after {
+  content: "📋";
+  position: absolute;
+  top: -14px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 22px;
+}
+
+.desk-check {
+  position: absolute;
+  top: -34px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 20px;
+  opacity: 0;
+}
+
+.desk-check.show {
+  animation: desk-check-pop 1.4s ease-in-out infinite;
+}
+
+@keyframes desk-check-pop {
+  0%, 100% { opacity: 0; transform: translateX(-50%) translateY(4px); }
+  50%      { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+
+/* ---------- Анимированная книжка-курьер ---------- */
+
 .walker-book {
   position: fixed;
-  bottom: 26px;
+  bottom: 60px;
   left: 0;
   z-index: 5;
-  font-size: 40px;
+  font-size: 34px;
   line-height: 1;
-  cursor: default;
   filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.25));
-  animation: book-walk 38s linear infinite;
+  animation: book-tour 24s ease-in-out infinite;
   pointer-events: none;
+}
+
+.walker-book .body {
+  display: inline-block;
+  animation: book-bounce 0.5s ease-in-out infinite;
 }
 
 .walker-book .picked {
   position: absolute;
-  top: -18px;
-  right: -12px;
+  top: -20px;
+  left: 50%;
+  transform: translateX(-50%);
   font-size: 18px;
   opacity: 0;
-  animation: pick-book 9.5s ease-in-out infinite;
 }
 
-@keyframes book-walk {
-  0%   { transform: translateX(-60px) scaleX(1); }
-  46%  { transform: translateX(calc(100vw + 60px)) scaleX(1); }
-  50%  { transform: translateX(calc(100vw + 60px)) scaleX(-1); }
-  96%  { transform: translateX(-60px) scaleX(-1); }
-  100% { transform: translateX(-60px) scaleX(1); }
+/* Тайминг сцены (24с):
+   0–18%  бежит к правому стеллажу
+  18–30%  берёт книгу (книга видна)
+  30–48%  бежит к стойке библиотекаря
+  48–60%  стоит у стойки, у стойки появляется галочка
+  60–78%  бежит к левому стеллажу
+  78–88%  берёт вторую книгу
+  88–100% возвращается к стойке, галочка снова */
+@keyframes book-tour {
+  0%     { left: 240px; transform: scaleX(1); }
+  18%    { left: calc(100vw - 200px); transform: scaleX(1); }
+  30%    { left: calc(100vw - 200px); transform: scaleX(1); }
+  48%    { left: 250px; transform: scaleX(-1); }
+  60%    { left: 250px; transform: scaleX(-1); }
+  78%    { left: 40px; transform: scaleX(1); }
+  88%    { left: 40px; transform: scaleX(1); }
+  100%   { left: 240px; transform: scaleX(-1); }
 }
 
 @keyframes book-bounce {
-  0%, 100% { margin-bottom: 0; }
-  50%      { margin-bottom: 6px; }
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-4px); }
 }
 
-.walker-book span.body {
-  display: inline-block;
-  animation: book-bounce 0.6s ease-in-out infinite;
-}
-
+/* Поднятая книга: видна на стеллажах (18–30% и 78–88%), скрыта в пути */
 @keyframes pick-book {
-  0%, 55%, 100% { opacity: 0; transform: translateY(6px); }
-  65%, 85%      { opacity: 1; transform: translateY(0); }
+  0%, 16%, 32%, 76%, 90%, 100% { opacity: 0; transform: translateX(-50%) translateY(8px); }
+  20%, 28%, 80%, 86%           { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+
+.walker-book .picked {
+  animation: pick-book 24s ease-in-out infinite;
+}
+
+@keyframes book-bounce-fast {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-4px); }
+}
+
+@media (max-width: 900px) {
+  .librarian-desk { left: 24px; }
+  @keyframes book-tour {
+    0%     { left: 90px; transform: scaleX(1); }
+    18%    { left: calc(100vw - 120px); transform: scaleX(1); }
+    30%    { left: calc(100vw - 120px); transform: scaleX(1); }
+    48%    { left: 100px; transform: scaleX(-1); }
+    60%    { left: 100px; transform: scaleX(-1); }
+    78%    { left: 40px; transform: scaleX(1); }
+    88%    { left: 40px; transform: scaleX(1); }
+    100%   { left: 90px; transform: scaleX(-1); }
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .walker-book, .walker-book .body, .walker-book .picked {
+  .walker-book, .walker-book .body, .walker-book .picked, .desk-check.show {
     animation: none;
   }
+  .walker-book .picked { opacity: 1; }
 }
 
 button {

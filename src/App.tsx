@@ -50,28 +50,23 @@ function makeShelf(seed: number, count: number): ShelfBookSpec[] {
 }
 
 function LibraryBackground() {
-  const rows = useMemo(
-    () =>
-      [11, 23, 37].map((seed) => ({
-        top: 60 + seed % 3 * 160,
-        shelves: [makeShelf(seed, 7), makeShelf(seed + 5, 7), makeShelf(seed + 9, 7)],
-      })),
+  const leftShelves = useMemo(
+    () => [makeShelf(11, 8), makeShelf(17, 8), makeShelf(23, 8), makeShelf(29, 8), makeShelf(31, 8), makeShelf(41, 8), makeShelf(47, 8)],
+    []
+  );
+  const rightShelves = useMemo(
+    () => [makeShelf(53, 8), makeShelf(59, 8), makeShelf(61, 8), makeShelf(67, 8), makeShelf(71, 8), makeShelf(73, 8), makeShelf(79, 8)],
     []
   );
   return (
     <div className="library-bg" aria-hidden="true">
-      {rows.map((row, ri) => (
-        <div
-          key={ri}
-          className="shelf-row"
-          style={{
-            top: row.top,
-            transform: ri === 1 ? "scale(1.1)" : ri === 2 ? "scale(0.92)" : "none",
-            opacity: 0.32 + ri * 0.08,
-          }}
-        >
-          {row.shelves.map((books, si) => (
-            <div key={si} className="shelf">
+      {[
+        { side: "left", shelves: leftShelves },
+        { side: "right", shelves: rightShelves },
+      ].map(({ side, shelves }) => (
+        <div key={side} className={"side-shelf " + side}>
+          {shelves.map((books, si) => (
+            <div key={si}>
               <div className="shelf-books">
                 {books.map((b, bi) => (
                   <div
@@ -86,6 +81,12 @@ function LibraryBackground() {
           ))}
         </div>
       ))}
+      <div className="librarian-desk">
+        <div className="librarian">🧑‍💼</div>
+        <div className="desk">
+          <span className="desk-check show">✅</span>
+        </div>
+      </div>
     </div>
   );
 }
