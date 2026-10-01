@@ -29,6 +29,7 @@ export default function App() {
     () => localStorage.getItem(ADMIN_STORAGE_KEY) === "1"
   );
   const [passwordInput, setPasswordInput] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [adminError, setAdminError] = useState("");
 
   const [reqName, setReqName] = useState("");
@@ -531,13 +532,36 @@ export default function App() {
                 <h2>🔑 Вход администратора</h2>
                 <p style={{ fontSize: 14 }}>Только для сотрудников библиотеки.</p>
                 {adminError && <div className="admin-error">{adminError}</div>}
-                <input
-                  type="password"
-                  placeholder="Введите пароль"
-                  value={passwordInput}
-                  onChange={(e) => setPasswordInput(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && handleAdminLogin()}
-                />
+                <div style={{ position: "relative" }}>
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    placeholder="Введите пароль"
+                    value={passwordInput}
+                    onChange={(e) => setPasswordInput(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && handleAdminLogin()}
+                    style={{ paddingRight: 44 }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword((v) => !v)}
+                    aria-label={showPassword ? "Скрыть пароль" : "Показать пароль"}
+                    title={showPassword ? "Скрыть пароль" : "Показать пароль"}
+                    style={{
+                      position: "absolute",
+                      right: 6,
+                      top: "50%",
+                      transform: "translateY(-50%)",
+                      background: "none",
+                      border: "none",
+                      cursor: "pointer",
+                      fontSize: 18,
+                      padding: 4,
+                      lineHeight: 1,
+                    }}
+                  >
+                    {showPassword ? "🙈" : "👁️"}
+                  </button>
+                </div>
                 <button className="btn btn-white" onClick={handleAdminLogin}>Войти</button>
               </>
             ) : (
