@@ -174,6 +174,134 @@ function startMelody(ctx: AudioContext, master: GainNode) {
   return () => clearInterval(loop);
 }
 
+// ---------- Шум леса: ветер (фильтрованный шум) + птички ----------
+
+function startForest(ctx: AudioContext, master: GainNode) {
+  const nodes: Array<() => void> = [];
+
+  // Мягкий «шелест листвы» — коричневый шум через медленно дышащий фильтр
+  const bufferSize = ctx.sampleRate * 2;
+  const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+  const chan = buffer.getChannelData(0);
+  let last = 0;
+  for (let i = 0; i < bufferSize; i++) {
+    const white = Math.random() * 2 - 1;
+    last = (last + 0.02 * white) / 1.02;
+    chan[i] = last * 3.2;
+  }
+  const noise = ctx.createBufferSource();
+  noise.buffer = buffer;
+  noise.loop = true;
+
+  const filter = ctx.createBiquadFilter();
+  filter.type = "lowpass";
+  filter.frequency.value = 480;
+
+  const windGain = ctx.createGain();
+  windGain.gain.value = 0.14;
+
+  // «Дыхание» ветра — громкость плавно волнообразно меняется
+  const lfo = ctx.createOscillator();
+  const lfoGain = ctx.createGain();
+  lfo.frequency.value = 0.09;
+  lfoGain.gain.value = 0.06;
+  lfo.connect(lfoGain).connect(windGain.gain);
+
+  const filterLfo = ctx.createOscillator();
+  const filterLfoGain = ctx.createGain();
+  filterLfo.frequency.value = 0.05;
+  filterLfoGain.gain.value = 220;
+  filterLfo.connect(filterLfoGain).connect(filter.frequency);
+
+  noise.connect(filter).connect(windGain).connect(master);
+  noise.start();
+  lfo.start();
+  filterLfo.start();
+  nodes.push(() => {
+    noise.stop();
+    lfo.stop();
+    filterLfo.stop();
+  });
+
+  // Птички: редкие короткие щебеты
+  const chirp = (at: number) => {
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = "sine";
+    const base = 2400 + Math.random() * 1400;
+    osc.frequency.setValueAtTime(base, at);
+    osc.frequency.exponentialRampToValueAtTime(base * (1.3 + Math.random() * 0.4), at + 0.07);
+    osc.frequency.exponentialRampToValueAtTime(base * 0.8, at + 0.14);
+    gain.gain.setValueAtTime(0, at);
+    gain.gain.linearRampToValueAtTime(0.05, at + 0.02);
+    gain.gain.exponentialRampToValueAtTime(0.001, at + 0.18);
+    osc.connect(gain).connect(master);
+    osc.start(at);
+    osc.stop(at + 0.2);
+  };
+
+  const scheduleBirds = () => {
+    const burst = 2 + Math.floor(Math.random() * 3);
+    let t = ctx.currentTime + 0.1;
+    for (let i = 0; i < burst; i++) {
+      chirp(t);
+      t += 0.14 + Math.random() * 0.12;
+    }
+  };
+  const birdTimer = setInterval(scheduleBirds, 4500 + Math.random() * 4000);
+  nodes.push(() => clearInterval(birdTimer));
+
+  return () => nodes.forEach((stop) => stop());
+}
+
+function ForestToggle() {
+  const [playing, setPlaying] = useState(false);
+  const ctxRef = useRef<AudioContext | null>(null);
+  const masterRef = useRef<GainNode | null>(null);
+  const stopRef = useRef<(() => void) | null>(null);
+
+  useEffect(
+    () => () => {
+      stopRef.current?.();
+      ctxRef.current?.close();
+    },
+    []
+  );
+
+  const toggle = () => {
+    if (playing) {
+      stopRef.current?.();
+      stopRef.current = null;
+      setPlaying(false);
+      return;
+    }
+    if (!ctxRef.current) {
+      const Ctx = window.AudioContext ?? (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+      const ctx = new Ctx();
+      const master = ctx.createGain();
+      // Чуть громче мелодии, но мягко: ветер тише, птички деликатные
+      master.gain.value = 0.8;
+      master.connect(ctx.destination);
+      ctxRef.current = ctx;
+      masterRef.current = master;
+    }
+    ctxRef.current.resume();
+    stopRef.current = startForest(ctxRef.current, masterRef.current!);
+    setPlaying(true);
+  };
+
+  return (
+    <button
+      className="music-toggle forest"
+      onClick={toggle}
+      title={playing ? "Выключить шум леса" : "Включить шум леса"}
+      aria-label={playing ? "Выключить шум леса" : "Включить шум леса"}
+    >
+      {playing ? "🌲" : "🌳"}
+    </button>
+  );
+}
+
 function MusicToggle() {
   const [playing, setPlaying] = useState(false);
   const ctxRef = useRef<AudioContext | null>(null);
@@ -604,6 +732,7 @@ export default function App() {
       <LibraryBackground />
       <WalkingBook />
       <MusicToggle />
+      <ForestToggle />
       <header className="header">
           <h1>📚 Библиотека Центра речи «Будущее»</h1>
           <p>Загрузка библиотеки…</p>
@@ -622,6 +751,7 @@ export default function App() {
       <LibraryBackground />
       <WalkingBook />
       <MusicToggle />
+      <ForestToggle />
       <header className="header">
         <h1>
           📚 Библиотека Центра речи «Будущее»

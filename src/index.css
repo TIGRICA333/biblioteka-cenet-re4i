@@ -227,6 +227,11 @@ body {
   transform: scale(1.08);
 }
 
+.music-toggle.forest {
+  right: 72px;
+  background: rgba(232, 245, 233, 0.94);
+}
+
 /* ---------- Падающие осенние листочки и книжки ---------- */
 .falling-item {
   position: absolute;
