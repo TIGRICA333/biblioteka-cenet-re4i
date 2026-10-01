@@ -568,18 +568,17 @@ textarea {
   margin-bottom: 10px;
 }
 
-/* Две части панели книг: уже имеющиеся книги и внесение новой книги */
-.books-block {
-  display: block;
+/* Две красные панели: список книг + внесение новой книги */
+.books-column {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
 }
 
 .new-book-block {
-  margin-top: 20px;
-  border-top: 2px dashed rgba(255, 255, 255, 0.55);
-}
-
-.new-book-block h3 {
-  margin: 0 0 6px;
+  border-top: none;
+  margin-top: 0;
+  padding-top: 0;
 }
 
 .new-book-note {

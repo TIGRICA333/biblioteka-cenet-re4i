@@ -550,10 +550,9 @@ export default function App() {
       )}
 
       <div className="grid">
-        {/* Красная панель: книги */}
+        {/* Красная панель 1: книги, которые уже есть */}
+        <div className="books-column">
         <section className="panel books-panel">
-          {/* Часть 1: книги, которые уже есть */}
-          <div className="books-block">
           <h2>📕 Наши книги</h2>
           <input
             placeholder="Поиск книги или автора…"
@@ -627,14 +626,15 @@ export default function App() {
               ))}
             </ul>
           )}
-          </div>
+        </section>
 
-          {/* Часть 2: внесение новой книги (только администратор) */}
-          {isAdmin && (
+        {/* Красная панель 2: внесение новой книги */}
+        <section className="panel books-panel">
+          <h2>➕ Внести новую книгу</h2>
+          {isAdmin ? (
             <div className="admin-form new-book-block">
-              <h3>➕ Внести новую книгу</h3>
               <p className="new-book-note">
-                Заполните поля и нажмите «Опубликовать» — книга появится в списке выше.
+                Заполните поля и нажмите «Опубликовать» — книга появится в панели «📕 Наши книги».
               </p>
               <input placeholder="Название" value={newTitle} onChange={(e) => setNewTitle(e.target.value)} />
               <input placeholder="Автор" value={newAuthor} onChange={(e) => setNewAuthor(e.target.value)} />
@@ -653,8 +653,14 @@ export default function App() {
                 {pendingSave ? "Публикация…" : "Опубликовать"}
               </button>
             </div>
+          ) : (
+            <p className="new-book-note">
+              Вносить и публиковать новые книги может только администратор библиотеки —
+              войдите в панель «🔑 Вход администратора» справа.
+            </p>
           )}
         </section>
+        </div>
 
         <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
           {/* Зелёная панель: вход администратора */}
