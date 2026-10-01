@@ -174,12 +174,12 @@ function startMelody(ctx: AudioContext, master: GainNode) {
   return () => clearInterval(loop);
 }
 
-// ---------- Шум леса: ветер (фильтрованный шум) + птички ----------
+// ---------- Приятный звук ветерка: мягкий «дышащий» шелест ----------
 
 function startForest(ctx: AudioContext, master: GainNode) {
   const nodes: Array<() => void> = [];
 
-  // Мягкий «шелест листвы» — коричневый шум через медленно дышащий фильтр
+  // Тёплый шелест — коричневый шум через мягкий фильтр
   const bufferSize = ctx.sampleRate * 2;
   const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
   const chan = buffer.getChannelData(0);
@@ -195,22 +195,22 @@ function startForest(ctx: AudioContext, master: GainNode) {
 
   const filter = ctx.createBiquadFilter();
   filter.type = "lowpass";
-  filter.frequency.value = 480;
+  filter.frequency.value = 420;
 
   const windGain = ctx.createGain();
-  windGain.gain.value = 0.14;
+  windGain.gain.value = 0.13;
 
-  // «Дыхание» ветра — громкость плавно волнообразно меняется
+  // Ветерок «дышит»: громкость и тембр плавно колышутся
   const lfo = ctx.createOscillator();
   const lfoGain = ctx.createGain();
-  lfo.frequency.value = 0.09;
-  lfoGain.gain.value = 0.06;
+  lfo.frequency.value = 0.08;
+  lfoGain.gain.value = 0.07;
   lfo.connect(lfoGain).connect(windGain.gain);
 
   const filterLfo = ctx.createOscillator();
   const filterLfoGain = ctx.createGain();
-  filterLfo.frequency.value = 0.05;
-  filterLfoGain.gain.value = 220;
+  filterLfo.frequency.value = 0.045;
+  filterLfoGain.gain.value = 180;
   filterLfo.connect(filterLfoGain).connect(filter.frequency);
 
   noise.connect(filter).connect(windGain).connect(master);
@@ -222,34 +222,6 @@ function startForest(ctx: AudioContext, master: GainNode) {
     lfo.stop();
     filterLfo.stop();
   });
-
-  // Птички: редкие короткие щебеты
-  const chirp = (at: number) => {
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.type = "sine";
-    const base = 2400 + Math.random() * 1400;
-    osc.frequency.setValueAtTime(base, at);
-    osc.frequency.exponentialRampToValueAtTime(base * (1.3 + Math.random() * 0.4), at + 0.07);
-    osc.frequency.exponentialRampToValueAtTime(base * 0.8, at + 0.14);
-    gain.gain.setValueAtTime(0, at);
-    gain.gain.linearRampToValueAtTime(0.05, at + 0.02);
-    gain.gain.exponentialRampToValueAtTime(0.001, at + 0.18);
-    osc.connect(gain).connect(master);
-    osc.start(at);
-    osc.stop(at + 0.2);
-  };
-
-  const scheduleBirds = () => {
-    const burst = 2 + Math.floor(Math.random() * 3);
-    let t = ctx.currentTime + 0.1;
-    for (let i = 0; i < burst; i++) {
-      chirp(t);
-      t += 0.14 + Math.random() * 0.12;
-    }
-  };
-  const birdTimer = setInterval(scheduleBirds, 4500 + Math.random() * 4000);
-  nodes.push(() => clearInterval(birdTimer));
 
   return () => nodes.forEach((stop) => stop());
 }
@@ -279,8 +251,8 @@ function ForestToggle() {
       const Ctx = window.AudioContext ?? (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
       const ctx = new Ctx();
       const master = ctx.createGain();
-      // Чуть громче мелодии, но мягко: ветер тише, птички деликатные
-      master.gain.value = 0.8;
+      // Приятный, ненавязчивый уровень громкости
+      master.gain.value = 0.75;
       master.connect(ctx.destination);
       ctxRef.current = ctx;
       masterRef.current = master;
@@ -294,10 +266,10 @@ function ForestToggle() {
     <button
       className="music-toggle forest"
       onClick={toggle}
-      title={playing ? "Выключить шум леса" : "Включить шум леса"}
-      aria-label={playing ? "Выключить шум леса" : "Включить шум леса"}
+      title={playing ? "Выключить ветерок" : "Включить ветерок"}
+      aria-label={playing ? "Выключить ветерок" : "Включить ветерок"}
     >
-      {playing ? "🌲" : "🌳"}
+      {playing ? "🍃" : "🌬️"}
     </button>
   );
 }
