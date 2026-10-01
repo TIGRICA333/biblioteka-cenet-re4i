@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useRef } from "react";
+import { useState, useEffect, useMemo } from "react";
 import {
   Book,
   ReaderRequest,
@@ -125,203 +125,6 @@ function FallingItems() {
   );
 }
 
-// ---------- Спокойная фоновая мелодия (синтезируется в браузере, без файлов) ----------
-
-const MELODY: Array<[number, number]> = [
-  // [нота (полутона от A4), длительность в долях]
-  [0, 1], [3, 1], [7, 2], [5, 1], [3, 1], [0, 2],
-  [-2, 1], [0, 1], [3, 2], [2, 1], [0, 1], [-2, 2],
-  [0, 1], [5, 1], [8, 2], [7, 1], [5, 1], [3, 2],
-  [2, 1], [0, 1], [-2, 2], [0, 4],
-];
-
-function startMelody(ctx: AudioContext, master: GainNode) {
-  const beat = 0.62; // секунды на долю — умеренный темп
-  let t = ctx.currentTime + 0.1;
-  const playOnce = () => {
-    t = Math.max(t, ctx.currentTime + 0.05);
-    for (const [semitones, len] of MELODY) {
-      const freq = 220 * Math.pow(2, semitones / 12); // A3-основание
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.type = "triangle";
-      osc.frequency.value = freq;
-      const start = t;
-      const dur = len * beat;
-      gain.gain.setValueAtTime(0, start);
-      gain.gain.linearRampToValueAtTime(0.16, start + 0.08);
-      gain.gain.exponentialRampToValueAtTime(0.001, start + dur * 0.95);
-      osc.connect(gain).connect(master);
-      osc.start(start);
-      osc.stop(start + dur);
-      // мягкое эхо-аккомпанемент октавой ниже
-      const osc2 = ctx.createOscillator();
-      const gain2 = ctx.createGain();
-      osc2.type = "sine";
-      osc2.frequency.value = freq / 2;
-      gain2.gain.setValueAtTime(0, start);
-      gain2.gain.linearRampToValueAtTime(0.07, start + 0.1);
-      gain2.gain.exponentialRampToValueAtTime(0.001, start + dur * 0.95);
-      osc2.connect(gain2).connect(master);
-      osc2.start(start);
-      osc2.stop(start + dur);
-      t += dur;
-    }
-  };
-  playOnce();
-  const totalMs = MELODY.reduce((s, [, l]) => s + l * beat, 0) * 1000;
-  const loop = setInterval(playOnce, totalMs);
-  return () => clearInterval(loop);
-}
-
-// ---------- Приятный звук ветерка: мягкий «дышащий» шелест ----------
-
-function startForest(ctx: AudioContext, master: GainNode) {
-  const nodes: Array<() => void> = [];
-
-  // Тёплый шелест — коричневый шум через мягкий фильтр
-  const bufferSize = ctx.sampleRate * 2;
-  const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
-  const chan = buffer.getChannelData(0);
-  let last = 0;
-  for (let i = 0; i < bufferSize; i++) {
-    const white = Math.random() * 2 - 1;
-    last = (last + 0.02 * white) / 1.02;
-    chan[i] = last * 3.2;
-  }
-  const noise = ctx.createBufferSource();
-  noise.buffer = buffer;
-  noise.loop = true;
-
-  const filter = ctx.createBiquadFilter();
-  filter.type = "lowpass";
-  filter.frequency.value = 420;
-
-  const windGain = ctx.createGain();
-  windGain.gain.value = 0.18;
-
-  // Ветерок «дышит»: громкость и тембр плавно колышутся
-  const lfo = ctx.createOscillator();
-  const lfoGain = ctx.createGain();
-  lfo.frequency.value = 0.08;
-  lfoGain.gain.value = 0.08;
-  lfo.connect(lfoGain).connect(windGain.gain);
-
-  const filterLfo = ctx.createOscillator();
-  const filterLfoGain = ctx.createGain();
-  filterLfo.frequency.value = 0.045;
-  filterLfoGain.gain.value = 180;
-  filterLfo.connect(filterLfoGain).connect(filter.frequency);
-
-  noise.connect(filter).connect(windGain).connect(master);
-  noise.start();
-  lfo.start();
-  filterLfo.start();
-  nodes.push(() => {
-    noise.stop();
-    lfo.stop();
-    filterLfo.stop();
-  });
-
-  return () => nodes.forEach((stop) => stop());
-}
-
-function ForestToggle() {
-  const [playing, setPlaying] = useState(false);
-  const ctxRef = useRef<AudioContext | null>(null);
-  const masterRef = useRef<GainNode | null>(null);
-  const stopRef = useRef<(() => void) | null>(null);
-
-  useEffect(
-    () => () => {
-      stopRef.current?.();
-      ctxRef.current?.close();
-    },
-    []
-  );
-
-  const toggle = () => {
-    if (playing) {
-      stopRef.current?.();
-      stopRef.current = null;
-      setPlaying(false);
-      return;
-    }
-    if (!ctxRef.current) {
-      const Ctx = window.AudioContext ?? (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
-      const ctx = new Ctx();
-      const master = ctx.createGain();
-      // Заметно слышимый, но мягкий уровень громкости
-      master.gain.value = 1.15;
-      master.connect(ctx.destination);
-      ctxRef.current = ctx;
-      masterRef.current = master;
-    }
-    ctxRef.current.resume();
-    stopRef.current = startForest(ctxRef.current, masterRef.current!);
-    setPlaying(true);
-  };
-
-  return (
-    <button
-      className="music-toggle forest"
-      onClick={toggle}
-      title={playing ? "Выключить ветерок" : "Включить ветерок"}
-      aria-label={playing ? "Выключить ветерок" : "Включить ветерок"}
-    >
-      {playing ? "🍃" : "🌬️"}
-    </button>
-  );
-}
-
-function MusicToggle() {
-  const [playing, setPlaying] = useState(false);
-  const ctxRef = useRef<AudioContext | null>(null);
-  const masterRef = useRef<GainNode | null>(null);
-  const stopRef = useRef<(() => void) | null>(null);
-
-  useEffect(
-    () => () => {
-      stopRef.current?.();
-      ctxRef.current?.close();
-    },
-    []
-  );
-
-  const toggle = () => {
-    if (playing) {
-      stopRef.current?.();
-      ctxRef.current?.suspend();
-      setPlaying(false);
-      return;
-    }
-    if (!ctxRef.current) {
-      const Ctx = window.AudioContext ?? (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
-      const ctx = new Ctx();
-      const master = ctx.createGain();
-      master.gain.value = 0.5;
-      master.connect(ctx.destination);
-      ctxRef.current = ctx;
-      masterRef.current = master;
-    }
-    const ctx = ctxRef.current;
-    ctx.resume();
-    stopRef.current = startMelody(ctx, masterRef.current!);
-    setPlaying(true);
-  };
-
-  return (
-    <button
-      className="music-toggle"
-      onClick={toggle}
-      title={playing ? "Выключить музыку" : "Включить спокойную музыку"}
-      aria-label={playing ? "Выключить музыку" : "Включить музыку"}
-    >
-      {playing ? "🎵" : "🔇"}
-    </button>
-  );
-}
-
 function WalkingBook() {
   const picked = useMemo(
     () => ["📖", "📕", "📗", "📘", "📙", "📓"][Math.floor(Math.random() * 6)],
@@ -334,6 +137,7 @@ function WalkingBook() {
     </div>
   );
 }
+
 
 export default function App() {
   const [books, setBooks] = useState<Book[]>([]);
@@ -703,8 +507,6 @@ export default function App() {
     return (    <div className="app">
       <LibraryBackground />
       <WalkingBook />
-      <MusicToggle />
-      <ForestToggle />
       <header className="header">
           <h1>📚 Библиотека Центра речи «Будущее»</h1>
           <p>Загрузка библиотеки…</p>
@@ -722,8 +524,6 @@ export default function App() {
     <div className="app">
       <LibraryBackground />
       <WalkingBook />
-      <MusicToggle />
-      <ForestToggle />
       <header className="header">
         <h1>
           📚 Библиотека Центра речи «Будущее»
