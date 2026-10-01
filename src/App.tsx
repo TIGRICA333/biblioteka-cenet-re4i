@@ -51,7 +51,7 @@ function makeShelf(seed: number, count: number): ShelfBookSpec[] {
 
 function LibraryBackground() {
   const leftShelves = useMemo(
-    () => [makeShelf(11, 8), makeShelf(17, 8), makeShelf(23, 8), makeShelf(29, 8), makeShelf(31, 8), makeShelf(41, 8), makeShelf(47, 8)],
+    () => [makeShelf(11, 8), makeShelf(17, 8), makeShelf(23, 8), makeShelf(29, 8), makeShelf(31, 8)],
     []
   );
   const rightShelves = useMemo(
