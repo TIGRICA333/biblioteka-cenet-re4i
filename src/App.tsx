@@ -667,6 +667,11 @@ export default function App() {
           )}
         </section>
 
+        {/* Читальный уголок между двумя красными панелями */}
+        <div className="reading-circles solo" aria-hidden="true">
+          <ReadingCircle />
+        </div>
+
         {/* Красная панель 2: внесение новой книги */}
         <section className="panel books-panel">
           <h2>➕ Внести новую книгу</h2>
