@@ -79,6 +79,7 @@ body {
   line-height: 1;
   margin-bottom: -8px;
   z-index: 2;
+  animation: librarian-work 6s ease-in-out infinite;
 }
 
 .desk {
@@ -99,22 +100,52 @@ body {
   font-size: 22px;
 }
 
+/* Книга, которую девушка-библиотекарь принимает и отмечает */
+.desk-book {
+  position: absolute;
+  top: -20px;
+  left: 10px;
+  font-size: 22px;
+  opacity: 0;
+  animation: desk-book-cycle 6s ease-in-out infinite;
+}
+
 .desk-check {
   position: absolute;
-  top: -34px;
-  left: 50%;
+  top: -40px;
+  left: 21px;
   transform: translateX(-50%);
   font-size: 20px;
   opacity: 0;
 }
 
 .desk-check.show {
-  animation: desk-check-pop 1.4s ease-in-out infinite;
+  animation: desk-check-pop 6s ease-in-out infinite;
+}
+
+/* Сюжет: книга подъезжает → берётся → появляется ✅ → книга принята */
+@keyframes desk-book-cycle {
+  0%     { opacity: 0; transform: translateX(-36px); }
+  10%    { opacity: 1; transform: translateX(0); }
+  44%    { opacity: 1; transform: translateX(0); }
+  54%    { opacity: 0; transform: translateX(14px) translateY(4px); }
+  92%    { opacity: 0; transform: translateX(-36px); }
+  100%   { opacity: 0; transform: translateX(-36px); }
 }
 
 @keyframes desk-check-pop {
-  0%, 100% { opacity: 0; transform: translateX(-50%) translateY(4px); }
-  50%      { opacity: 1; transform: translateX(-50%) translateY(0); }
+  0%, 32%   { opacity: 0; transform: translateX(-50%) translateY(6px) scale(0.6); }
+  40%, 50%  { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
+  58%, 100% { opacity: 0; transform: translateX(-50%) translateY(6px) scale(0.6); }
+}
+
+/* Девушка-библиотекарь принимает книгу и отмечает её */
+@keyframes librarian-work {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  14%      { transform: translateY(2px) rotate(-4deg); }
+  28%      { transform: translateY(0) rotate(0deg); }
+  42%      { transform: translateY(2px) rotate(4deg); }
+  56%      { transform: translateY(0) rotate(0deg); }
 }
 
 /* ---------- Анимированная книжка-курьер ---------- */
@@ -199,10 +230,11 @@ body {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .walker-book, .walker-book .body, .walker-book .picked, .desk-check.show {
+  .walker-book, .walker-book .body, .walker-book .picked, .desk-check.show, .desk-book, .librarian {
     animation: none;
   }
   .walker-book .picked { opacity: 1; }
+  .desk-book { opacity: 1; }
   .falling-item { animation: none; opacity: 0.25; }
 }
 

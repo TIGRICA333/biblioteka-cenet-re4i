@@ -83,8 +83,9 @@ function LibraryBackground() {
       ))}
       <FallingItems />
       <div className="librarian-desk">
-        <div className="librarian">🧑‍💼</div>
+        <div className="librarian">👩‍💼</div>
         <div className="desk">
+          <span className="desk-book">📕</span>
           <span className="desk-check show">✅</span>
         </div>
       </div>
