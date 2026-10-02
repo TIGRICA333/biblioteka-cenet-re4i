@@ -181,6 +181,43 @@ function ReadingCircle() {
   );
 }
 
+// Библиотекари: ходят к стеллажам, выбирают книги и читают
+function ShelfWalkers() {
+  const walkers = useMemo(
+    () => [
+      { emoji: "🚶‍♀️", dur: 15, delay: 0 },
+      { emoji: "🚶‍♂️", dur: 18, delay: -7 },
+      { emoji: "🚶", dur: 16.5, delay: -12 },
+    ],
+    []
+  );
+  return (
+    <div className="shelf-walkers" aria-hidden="true">
+      <span className="w-shelf w-shelf-left">📚</span>
+      <span className="w-shelf w-shelf-right">📚</span>
+      {walkers.map((w, i) => (
+        <div
+          key={i}
+          className="walker"
+          style={{ animationDuration: `${w.dur}s`, animationDelay: `${w.delay}s` }}
+        >
+          <span
+            className="w-body"
+            style={{ animationDuration: `${w.dur}s`, animationDelay: `${w.delay}s` }}
+          >
+            {w.emoji}
+          </span>
+          <span
+            className="w-book"
+            style={{ animationDuration: `${w.dur}s`, animationDelay: `${w.delay}s` }}
+          >
+            📖
+          </span>
+        </div>
+      ))}
+    </div>
+  );
+}
 
 export default function App() {
   const [books, setBooks] = useState<Book[]>([]);
@@ -757,6 +794,9 @@ export default function App() {
               </>
             )}
           </section>
+
+          {/* Библиотекари ходят к стеллажам выбирать и читать книги */}
+          <ShelfWalkers />
 
           {/* Розовая панель: запросы читателей */}
           <section className="panel reader-panel">

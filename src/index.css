@@ -654,6 +654,94 @@ textarea {
   50%      { transform: translateX(-50%) rotate(7deg); }
 }
 
+/* ---------- Библиотекари: ходят к стеллажам выбирать и читать ---------- */
+.shelf-walkers {
+  position: relative;
+  height: 84px;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.w-shelf {
+  position: absolute;
+  bottom: 6px;
+  font-size: 26px;
+  opacity: 0.85;
+  z-index: 0;
+}
+
+.w-shelf-left { left: 6px; }
+.w-shelf-right { right: 6px; }
+
+.walker {
+  position: absolute;
+  bottom: 10px;
+  left: -14%;
+  z-index: 1;
+  animation: shelf-journey 16s linear infinite;
+}
+
+.w-body {
+  display: inline-block;
+  font-size: 30px;
+  line-height: 1;
+  animation: w-bob 16s linear infinite;
+}
+
+.w-book {
+  position: absolute;
+  left: 50%;
+  top: -18px;
+  font-size: 16px;
+  opacity: 0;
+  transform: translateX(-50%);
+  animation: w-book 16s linear infinite;
+}
+
+@keyframes shelf-journey {
+  0%   { left: -14%; }
+  22%  { left: 20%; }
+  42%  { left: 20%; }
+  70%  { left: 62%; }
+  85%  { left: 62%; }
+  100% { left: 114%; }
+}
+
+@keyframes w-bob {
+  0%     { transform: translateY(0); }
+  2.5%   { transform: translateY(-3px); }
+  5%     { transform: translateY(0); }
+  7.5%   { transform: translateY(-3px); }
+  10%    { transform: translateY(0); }
+  12.5%  { transform: translateY(-3px); }
+  15%    { transform: translateY(0); }
+  17.5%  { transform: translateY(-3px); }
+  20%    { transform: translateY(0); }
+  22%    { transform: translateY(0); }
+  42%    { transform: translateY(0); }
+  45%    { transform: translateY(-3px); }
+  48%    { transform: translateY(0); }
+  51%    { transform: translateY(-3px); }
+  54%    { transform: translateY(0); }
+  57%    { transform: translateY(-3px); }
+  60%    { transform: translateY(0); }
+  63%    { transform: translateY(-3px); }
+  66%    { transform: translateY(0); }
+  69%    { transform: translateY(0); }
+  70%    { transform: translateY(0); }
+  85%    { transform: translateY(0); }
+  88%    { transform: translateY(-3px); }
+  91%    { transform: translateY(0); }
+  94%    { transform: translateY(-3px); }
+  97%    { transform: translateY(0); }
+  100%   { transform: translateY(0); }
+}
+
+@keyframes w-book {
+  0%, 36%   { opacity: 0; transform: translateX(-50%) scale(0.5); }
+  44%, 100% { opacity: 1; transform: translateX(-50%) scale(1); }
+}
+
 /* Две красные панели: список книг + внесение новой книги */
 .books-column {
   display: flex;
@@ -688,6 +776,11 @@ textarea {
     margin: 0 auto;
     padding: 16px;
   }
+
+  /* Библиотекари на телефоне чуть меньше */
+  .shelf-walkers { height: 72px; }
+  .w-body { font-size: 26px; }
+  .w-shelf { font-size: 22px; }
 
   /* Читальный уголок на телефоне компактнее */
   .reading-circles {
