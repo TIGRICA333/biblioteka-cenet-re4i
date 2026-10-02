@@ -569,11 +569,20 @@ textarea {
 }
 
 /* ---------- Читальный уголок: столы по кругу и читающие дети ---------- */
+/* Три небольших круга в ряд */
+.reading-circles {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 14px;
+  margin-top: 18px;
+}
+
 .reading-circle {
   position: relative;
-  height: 200px;
-  max-width: 640px;
-  margin: 18px auto 0;
+  flex: 1 1 260px;
+  max-width: 340px;
+  height: 150px;
   pointer-events: none;
 }
 
@@ -599,7 +608,7 @@ textarea {
 }
 
 .r-reader {
-  font-size: 26px;
+  font-size: 22px;
   line-height: 1;
   z-index: 1;
   animation: reader-nod 4.2s ease-in-out infinite;
@@ -607,8 +616,8 @@ textarea {
 
 .r-table {
   position: relative;
-  width: 54px;
-  height: 34px;
+  width: 40px;
+  height: 26px;
   margin-top: -4px;
   border-radius: 50%;
   background: linear-gradient(180deg, #b98a4e, #96692f);
@@ -618,8 +627,8 @@ textarea {
 .r-book {
   position: absolute;
   left: 50%;
-  top: -9px;
-  font-size: 20px;
+  top: -7px;
+  font-size: 16px;
   transform: translateX(-50%);
   transform-origin: bottom center;
   animation: book-sway 2.8s ease-in-out infinite;
@@ -676,12 +685,16 @@ textarea {
   }
 
   /* Читальный уголок на телефоне компактнее */
-  .reading-circle {
-    height: 150px;
+  .reading-circles {
+    gap: 10px;
     margin-top: 12px;
   }
 
-  .r-reader { font-size: 22px; }
-  .r-table { width: 44px; height: 28px; }
-  .r-book { font-size: 17px; top: -8px; }
+  .reading-circle {
+    height: 120px;
+  }
+
+  .r-reader { font-size: 18px; }
+  .r-table { width: 34px; height: 22px; }
+  .r-book { font-size: 14px; top: -6px; }
 }

@@ -592,7 +592,11 @@ export default function App() {
         </div>
       )}
 
-      <ReadingCircle />
+      <div className="reading-circles" aria-hidden="true">
+        {[0, 1, 2].map((i) => (
+          <ReadingCircle key={i} />
+        ))}
+      </div>
 
       <div className="grid">
         {/* Красная панель 1: книги, которые уже есть */}
