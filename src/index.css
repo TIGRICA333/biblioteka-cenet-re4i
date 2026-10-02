@@ -688,6 +688,12 @@ textarea {
   animation: w-bob 16s linear infinite;
 }
 
+/* Разворачиваем человечков лицом по направлению движения */
+.w-figure {
+  display: inline-block;
+  transform: scaleX(-1);
+}
+
 .w-book {
   position: absolute;
   left: 50%;

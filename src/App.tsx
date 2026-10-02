@@ -205,7 +205,7 @@ function ShelfWalkers() {
             className="w-body"
             style={{ animationDuration: `${w.dur}s`, animationDelay: `${w.delay}s` }}
           >
-            {w.emoji}
+            <span className="w-figure">{w.emoji}</span>
           </span>
           <span
             className="w-book"
