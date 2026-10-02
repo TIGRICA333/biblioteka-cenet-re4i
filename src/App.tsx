@@ -188,7 +188,6 @@ export default function App() {
   const [loading, setLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState("");
 
-  const [bookSearch, setBookSearch] = useState("");
   const [isAdmin, setIsAdmin] = useState(
     () => localStorage.getItem(ADMIN_STORAGE_KEY) === "1"
   );
@@ -542,10 +541,6 @@ export default function App() {
     );
   };
 
-  const visibleBooks = books.filter((b) =>
-    (b.title + " " + b.author).toLowerCase().includes(bookSearch.toLowerCase())
-  );
-
   if (loading) {
     return (    <div className="app">
       <LibraryBackground />
@@ -603,12 +598,7 @@ export default function App() {
         <div className="books-column">
         <section className="panel books-panel">
           <h2>📕 Наши книги</h2>
-          <input
-            placeholder="Поиск книги или автора…"
-            value={bookSearch}
-            onChange={(e) => setBookSearch(e.target.value)}
-          />
-          {visibleBooks.length === 0 ? (
+          {books.length === 0 ? (
             <p className="empty">
               {errorMsg
                 ? "Книги пока не отображаются — база недоступна."
@@ -616,7 +606,7 @@ export default function App() {
             </p>
           ) : (
             <ul className="book-list">
-              {visibleBooks.map((b) => (
+              {books.map((b) => (
                 <li key={b.id} className="book-item">
                   {b.coverUrl && (
                     <img src={b.coverUrl} alt={b.title} className="book-cover" />
@@ -802,6 +792,11 @@ export default function App() {
               </>
             )}
           </section>
+
+          {/* Ещё один читальный уголок между розовой и голубой панелями */}
+          <div className="reading-circles solo" aria-hidden="true">
+            <ReadingCircle />
+          </div>
 
           {/* Голубая панель: информация */}
           <section className="panel info-panel">

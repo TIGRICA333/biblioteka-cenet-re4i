@@ -578,6 +578,11 @@ textarea {
   margin-top: 18px;
 }
 
+/* Один уголок в правой колонке — без верхнего отступа (его даёт gap) */
+.reading-circles.solo {
+  margin-top: 0;
+}
+
 .reading-circle {
   position: relative;
   flex: 1 1 260px;
